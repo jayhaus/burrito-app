@@ -1721,6 +1721,196 @@
       font-size: 10px;
       font-weight: 800;
     }
+
+    /* ===== SETTINGS GEAR BUTTON ===== */
+    .profile-settings-btn {
+      position: absolute;
+      top: 52px; right: 16px;
+      width: 40px; height: 40px;
+      background: var(--cream);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      font-size: 18px;
+      color: var(--shadow);
+      transition: background 0.15s, color 0.15s;
+    }
+    .profile-settings-btn:active { background: rgba(176,168,154,0.3); color: var(--brown); }
+
+    /* ===== SETTINGS SCREEN ===== */
+    #settings-screen {
+      background: var(--cream);
+      overflow-y: auto;
+    }
+    .settings-header {
+      background: var(--white);
+      padding: 52px 24px 20px;
+      text-align: center;
+      position: relative;
+      border-bottom: 1px solid rgba(176,168,154,0.2);
+      flex-shrink: 0;
+    }
+    .settings-back {
+      position: absolute;
+      top: 52px; left: 16px;
+      width: 40px; height: 40px;
+      background: var(--cream);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      font-size: 18px;
+    }
+    .settings-section {
+      margin: 20px 24px 0;
+    }
+    .settings-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--shadow);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 8px;
+      padding-left: 4px;
+    }
+    .settings-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .settings-row {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(176,168,154,0.15);
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--shadow);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+    }
+    .settings-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid rgba(176,168,154,0.25);
+      border-radius: var(--radius-xs);
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--brown);
+      background: var(--cream);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .settings-input:focus { border-color: var(--tortilla); }
+    .settings-hint {
+      font-size: 11px;
+      color: var(--shadow);
+      margin-top: 5px;
+    }
+    .settings-save-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--salsa), #FF7A45);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(232,93,38,0.25);
+    }
+    .settings-save-btn:active { opacity: 0.9; }
+    .settings-msg {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 0;
+      min-height: 26px;
+    }
+    .settings-msg.success { color: var(--green); }
+    .settings-msg.error { color: #E85D26; }
+    .settings-avatar-btn {
+      width: 46px; height: 46px;
+      border-radius: 12px;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid transparent;
+      background: var(--cream);
+      transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    }
+    .settings-avatar-btn.selected {
+      border-color: var(--salsa);
+      background: rgba(232,93,38,0.1);
+      transform: scale(1.1);
+    }
+    .settings-danger-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(176,168,154,0.15);
+    }
+    .settings-danger-row:last-child { border-bottom: none; }
+    .settings-danger-row-label {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--brown);
+      margin-bottom: 2px;
+    }
+    .settings-danger-row-sub {
+      font-size: 12px;
+      color: var(--shadow);
+    }
+    .settings-outline-btn {
+      padding: 8px 18px;
+      border: 2px solid var(--shadow);
+      background: none;
+      color: var(--shadow);
+      border-radius: 50px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .settings-delete-btn {
+      padding: 8px 18px;
+      border: 2px solid #E74C3C;
+      background: none;
+      color: #E74C3C;
+      border-radius: 50px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    /* Confirm delete modal */
+    #delete-confirm-modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(123,79,46,0.5);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    #delete-confirm-modal.visible { display: flex; }
   </style>
 </head>
 <body>
@@ -2008,7 +2198,10 @@
     <div id="loggedin-profile" style="display:none;">
       <div class="user-profile-header">
         <button class="user-profile-back" onclick="showScreen('map-screen')">←</button>
-        <div class="user-avatar-big">🌯</div>
+        <button class="profile-settings-btn" onclick="openSettings()" title="Settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+        <div class="user-avatar-big" id="user-profile-avatar">🌯</div>
         <div class="user-display-name" id="profile-display-name">Burrito Fan</div>
         <div id="profile-title-badge" class="user-title-badge title-curious">Burrito Curious</div>
         <div class="user-handle" id="profile-handle">@username_sd</div>
@@ -2188,6 +2381,105 @@
     <div class="toast-emoji" id="toast-emoji">🎉</div>
     <div class="toast-title" id="toast-title">Milestone!</div>
     <div class="toast-sub" id="toast-sub"></div>
+  </div>
+
+  <!-- ===== SETTINGS SCREEN ===== -->
+  <div id="settings-screen" class="screen">
+    <div class="settings-header">
+      <button class="settings-back" onclick="closeSettings()">←</button>
+      <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--brown);">Settings ⚙️</div>
+    </div>
+
+    <div style="overflow-y:auto;flex:1;padding-bottom:60px;">
+      <!-- PROFILE SECTION -->
+      <div class="settings-section">
+        <div class="settings-section-title">Profile</div>
+        <div class="settings-card">
+          <div class="settings-row">
+            <div class="settings-label">Display Name</div>
+            <input type="text" id="settings-display-name" class="settings-input" placeholder="Your name" autocomplete="off">
+          </div>
+          <div class="settings-row">
+            <div class="settings-label">Username</div>
+            <input type="text" id="settings-username" class="settings-input" placeholder="burritolover_sd" autocomplete="off">
+            <div class="settings-hint">Letters, numbers &amp; underscores only · shown to friends</div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-label">Avatar</div>
+            <div id="settings-avatar-grid" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;"></div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:10px 24px 0;">
+        <div id="settings-profile-msg" class="settings-msg"></div>
+        <button class="settings-save-btn" onclick="saveProfileSettings()">Save Profile</button>
+      </div>
+
+      <!-- ACCOUNT SECTION -->
+      <div class="settings-section" style="margin-top:28px;">
+        <div class="settings-section-title">Account &amp; Security</div>
+        <div class="settings-card">
+          <div class="settings-row">
+            <div class="settings-label">Email Address</div>
+            <input type="email" id="settings-email" class="settings-input" placeholder="you@email.com" autocomplete="off">
+          </div>
+          <div class="settings-row">
+            <div class="settings-label">New Password</div>
+            <input type="password" id="settings-new-pass" class="settings-input" placeholder="Leave blank to keep current" autocomplete="new-password">
+          </div>
+          <div class="settings-row">
+            <div class="settings-label">Confirm New Password</div>
+            <input type="password" id="settings-confirm-pass" class="settings-input" placeholder="Repeat new password" autocomplete="new-password">
+          </div>
+          <div class="settings-row" style="background:rgba(250,244,236,0.6);">
+            <div class="settings-label">Current Password <span style="color:var(--salsa);">*</span></div>
+            <input type="password" id="settings-current-pass" class="settings-input" placeholder="Required to save changes" autocomplete="current-password">
+            <div class="settings-hint">We need this to verify it's you before changing email or password.</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:10px 24px 0;">
+        <div id="settings-account-msg" class="settings-msg"></div>
+        <button class="settings-save-btn" onclick="saveAccountSettings()">Save Account</button>
+      </div>
+
+      <!-- DANGER ZONE -->
+      <div class="settings-section" style="margin-top:28px;">
+        <div class="settings-section-title" style="color:#E74C3C;">Danger Zone</div>
+        <div class="settings-card">
+          <div class="settings-danger-row">
+            <div>
+              <div class="settings-danger-row-label">Sign Out</div>
+              <div class="settings-danger-row-sub">Sign out on this device</div>
+            </div>
+            <button class="settings-outline-btn" onclick="handleSignOut()">Sign Out</button>
+          </div>
+          <div class="settings-danger-row">
+            <div>
+              <div class="settings-danger-row-label" style="color:#E74C3C;">Delete Account</div>
+              <div class="settings-danger-row-sub">Permanently erase all your data</div>
+            </div>
+            <button class="settings-delete-btn" onclick="openDeleteConfirm()">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DELETE ACCOUNT CONFIRM MODAL ===== -->
+  <div id="delete-confirm-modal">
+    <div style="background:var(--white);border-radius:24px;width:100%;max-width:400px;padding:28px 24px;text-align:center;">
+      <div style="font-size:44px;margin-bottom:12px;">⚠️</div>
+      <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--brown);margin-bottom:8px;">Delete Account?</div>
+      <div style="font-size:14px;color:var(--shadow);line-height:1.6;margin-bottom:20px;">This will permanently delete all your logs, streaks, and milestones. This cannot be undone.</div>
+      <div class="form-group" style="text-align:left;">
+        <label class="form-label" style="font-size:12px;">Confirm your password</label>
+        <input type="password" id="delete-confirm-pass" class="settings-input" placeholder="Your current password" autocomplete="current-password">
+      </div>
+      <div id="delete-confirm-msg" class="settings-msg" style="margin-bottom:8px;"></div>
+      <button onclick="executeDeleteAccount()" style="width:100%;padding:14px;background:#E74C3C;color:white;border:none;border-radius:50px;font-family:var(--font-display);font-weight:800;font-size:15px;cursor:pointer;margin-bottom:10px;">Yes, Delete My Account</button>
+      <button onclick="closeDeleteConfirm()" style="background:none;border:none;color:var(--shadow);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);">Cancel</button>
+    </div>
   </div>
 
   <!-- ===== AUTH MODAL ===== -->
@@ -3182,6 +3474,10 @@
         document.getElementById('profile-spots').textContent = spots;
         document.getElementById('profile-friends-count').textContent = friendCount;
 
+        // Avatar emoji
+        const avatarEl = document.getElementById('user-profile-avatar');
+        if (avatarEl) avatarEl.textContent = data.avatar || '🌯';
+
         // Title badge
         const titleInfo = getUserTitle(eaten);
         const badge = document.getElementById('profile-title-badge');
@@ -3312,9 +3608,191 @@
 
     function handleSignOut() {
       auth.signOut().then(() => {
+        currentUser = null;
+        currentUserData = {};
         document.getElementById('guest-profile').style.display = 'block';
         document.getElementById('loggedin-profile').style.display = 'none';
+        showScreen('user-profile');
       });
+    }
+
+    // ===== SETTINGS =====
+    const AVATAR_EMOJIS = ['🌯','🌮','🔥','🏆','👑','💪','🤤','😎','🤠','🥑','🌶️','🧀','🫔','⭐','🎉','🦅'];
+    let settingsSelectedAvatar = '🌯';
+
+    function openSettings() {
+      if (!currentUser) return;
+      document.getElementById('settings-display-name').value = currentUserData.displayName || currentUser.displayName || '';
+      document.getElementById('settings-username').value = currentUserData.username || '';
+      document.getElementById('settings-email').value = currentUser.email || '';
+      document.getElementById('settings-new-pass').value = '';
+      document.getElementById('settings-confirm-pass').value = '';
+      document.getElementById('settings-current-pass').value = '';
+      document.getElementById('settings-profile-msg').textContent = '';
+      document.getElementById('settings-profile-msg').className = 'settings-msg';
+      document.getElementById('settings-account-msg').textContent = '';
+      document.getElementById('settings-account-msg').className = 'settings-msg';
+      settingsSelectedAvatar = currentUserData.avatar || '🌯';
+      renderAvatarGrid();
+      showScreen('settings-screen');
+    }
+
+    function closeSettings() {
+      showScreen('user-profile');
+    }
+
+    function renderAvatarGrid() {
+      const grid = document.getElementById('settings-avatar-grid');
+      if (!grid) return;
+      grid.innerHTML = AVATAR_EMOJIS.map(e =>
+        `<button class="settings-avatar-btn${e === settingsSelectedAvatar ? ' selected' : ''}" onclick="selectSettingsAvatar('${e}')">${e}</button>`
+      ).join('');
+    }
+
+    function selectSettingsAvatar(emoji) {
+      settingsSelectedAvatar = emoji;
+      renderAvatarGrid();
+    }
+
+    async function saveProfileSettings() {
+      if (!currentUser) return;
+      const name = document.getElementById('settings-display-name').value.trim();
+      const rawUsername = document.getElementById('settings-username').value.trim();
+      const msgEl = document.getElementById('settings-profile-msg');
+      msgEl.className = 'settings-msg';
+      msgEl.textContent = 'Saving…';
+
+      if (!name) { msgEl.className = 'settings-msg error'; msgEl.textContent = 'Display name is required.'; return; }
+      const username = rawUsername.toLowerCase().replace(/[^a-z0-9_]/g, '');
+      if (username.length < 3) { msgEl.className = 'settings-msg error'; msgEl.textContent = 'Username must be at least 3 characters (letters, numbers, underscores).'; return; }
+
+      const oldUsername = currentUserData.username || '';
+      if (username !== oldUsername) {
+        const uSnap = await db.collection('users').where('username', '==', username).limit(1).get();
+        if (!uSnap.empty) { msgEl.className = 'settings-msg error'; msgEl.textContent = 'That username is taken. Try another.'; return; }
+      }
+
+      try {
+        await currentUser.updateProfile({ displayName: name });
+        await db.collection('users').doc(currentUser.uid).update({
+          displayName: name,
+          username: username,
+          handle: '@' + username,
+          avatar: settingsSelectedAvatar
+        });
+        currentUserData = { ...currentUserData, displayName: name, username, handle: '@' + username, avatar: settingsSelectedAvatar };
+        // Refresh profile UI
+        document.getElementById('profile-display-name').textContent = name;
+        document.getElementById('profile-handle').textContent = '@' + username;
+        const avatarEl = document.getElementById('user-profile-avatar');
+        if (avatarEl) avatarEl.textContent = settingsSelectedAvatar;
+        msgEl.className = 'settings-msg success';
+        msgEl.textContent = '✓ Profile updated!';
+        setTimeout(() => { msgEl.textContent = ''; }, 3000);
+      } catch (e) {
+        msgEl.className = 'settings-msg error';
+        msgEl.textContent = e.message || 'Failed to save profile.';
+      }
+    }
+
+    async function saveAccountSettings() {
+      if (!currentUser) return;
+      const newEmail = document.getElementById('settings-email').value.trim();
+      const newPass = document.getElementById('settings-new-pass').value;
+      const confirmPass = document.getElementById('settings-confirm-pass').value;
+      const currentPass = document.getElementById('settings-current-pass').value;
+      const msgEl = document.getElementById('settings-account-msg');
+      msgEl.className = 'settings-msg';
+      msgEl.textContent = '';
+
+      const emailChanged = newEmail && newEmail !== currentUser.email;
+      const passChanged = newPass.length > 0;
+
+      if (!emailChanged && !passChanged) {
+        msgEl.className = 'settings-msg error';
+        msgEl.textContent = 'No changes to save.';
+        return;
+      }
+      if (passChanged && newPass !== confirmPass) {
+        msgEl.className = 'settings-msg error';
+        msgEl.textContent = 'Passwords do not match.';
+        return;
+      }
+      if (passChanged && newPass.length < 6) {
+        msgEl.className = 'settings-msg error';
+        msgEl.textContent = 'Password must be at least 6 characters.';
+        return;
+      }
+      if (!currentPass) {
+        msgEl.className = 'settings-msg error';
+        msgEl.textContent = 'Enter your current password to save changes.';
+        return;
+      }
+
+      msgEl.textContent = 'Verifying…';
+
+      try {
+        const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, currentPass);
+        await currentUser.reauthenticateWithCredential(credential);
+
+        if (emailChanged) {
+          await currentUser.updateEmail(newEmail);
+          await db.collection('users').doc(currentUser.uid).update({ email: newEmail });
+          currentUserData = { ...currentUserData, email: newEmail };
+        }
+        if (passChanged) {
+          await currentUser.updatePassword(newPass);
+        }
+
+        document.getElementById('settings-current-pass').value = '';
+        document.getElementById('settings-new-pass').value = '';
+        document.getElementById('settings-confirm-pass').value = '';
+        msgEl.className = 'settings-msg success';
+        msgEl.textContent = '✓ Account updated!';
+        setTimeout(() => { msgEl.textContent = ''; }, 3000);
+      } catch (e) {
+        const msg = e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential' ? 'Incorrect current password.'
+          : e.code === 'auth/email-already-in-use' ? 'That email is already in use.'
+          : e.code === 'auth/invalid-email' ? 'Invalid email address.'
+          : e.message;
+        msgEl.className = 'settings-msg error';
+        msgEl.textContent = msg;
+      }
+    }
+
+    function openDeleteConfirm() {
+      document.getElementById('delete-confirm-pass').value = '';
+      document.getElementById('delete-confirm-msg').textContent = '';
+      document.getElementById('delete-confirm-msg').className = 'settings-msg';
+      document.getElementById('delete-confirm-modal').classList.add('visible');
+    }
+
+    function closeDeleteConfirm() {
+      document.getElementById('delete-confirm-modal').classList.remove('visible');
+    }
+
+    async function executeDeleteAccount() {
+      if (!currentUser) return;
+      const pass = document.getElementById('delete-confirm-pass').value;
+      const msgEl = document.getElementById('delete-confirm-msg');
+      msgEl.className = 'settings-msg';
+      if (!pass) { msgEl.className = 'settings-msg error'; msgEl.textContent = 'Enter your password.'; return; }
+      msgEl.textContent = 'Deleting…';
+      try {
+        const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, pass);
+        await currentUser.reauthenticateWithCredential(credential);
+        // Delete Firestore user document
+        await db.collection('users').doc(currentUser.uid).delete();
+        // Delete Firebase Auth account
+        await currentUser.delete();
+        closeDeleteConfirm();
+        handleSignOut();
+      } catch (e) {
+        const msg = e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential' ? 'Incorrect password.'
+          : e.message;
+        msgEl.className = 'settings-msg error';
+        msgEl.textContent = msg;
+      }
     }
 
     // ===== LOG BURRITO =====
