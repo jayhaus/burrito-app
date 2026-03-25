@@ -1409,6 +1409,318 @@
 
     /* ===== UTILITIES ===== */
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+    /* ===== IDENTITY TITLE BADGE ===== */
+    .user-title-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 50px;
+      padding: 5px 14px;
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+    .user-title-badge.title-curious { background: linear-gradient(135deg,var(--shadow),#8A8078); color: white; }
+    .user-title-badge.title-regular { background: linear-gradient(135deg,var(--tortilla),#C0904A); color: white; }
+    .user-title-badge.title-lover { background: linear-gradient(135deg,var(--salsa),#FF7A45); color: white; }
+    .user-title-badge.title-expert { background: linear-gradient(135deg,var(--brown),#5A3A1E); color: white; }
+    .user-title-badge.title-god { background: linear-gradient(135deg,#FFB800,#FF6B00); color: white; }
+
+    /* ===== PROFILE TABS ===== */
+    .profile-tabs {
+      display: flex;
+      background: var(--white);
+      border-bottom: 1px solid rgba(176,168,154,0.2);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .profile-tab {
+      flex: 1;
+      padding: 14px 8px;
+      border: none;
+      background: none;
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--shadow);
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+    }
+    .profile-tab.active { color: var(--brown); }
+    .profile-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 16px; right: 16px;
+      height: 2px;
+      background: var(--salsa);
+      border-radius: 2px;
+    }
+    .profile-tab-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--salsa);
+      color: white;
+      border-radius: 50%;
+      width: 16px; height: 16px;
+      font-size: 10px;
+      font-weight: 800;
+      margin-left: 4px;
+    }
+    .profile-tab-panel { display: none; padding: 20px 24px 100px; }
+    .profile-tab-panel.active { display: block; }
+
+    /* ===== STREAK RING ===== */
+    .streak-ring-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+    .streak-ring { width: 48px; height: 48px; flex-shrink: 0; position: relative; }
+    .streak-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .streak-ring-num {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--salsa);
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      line-height: 1;
+    }
+    .streak-info-title { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--brown); }
+    .streak-info-sub { font-size: 12px; color: var(--shadow); margin-top: 2px; }
+    .streak-decay { font-size: 11px; color: #FF9500; font-weight: 600; margin-top: 3px; }
+
+    /* ===== MILESTONE TOAST ===== */
+    #milestone-toast {
+      position: fixed;
+      top: 80px; left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: linear-gradient(135deg, var(--brown), #5A3A1E);
+      color: white;
+      border-radius: var(--radius);
+      padding: 16px 24px;
+      text-align: center;
+      z-index: 9998;
+      box-shadow: 0 8px 32px rgba(123,79,46,0.35);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+      pointer-events: none;
+      min-width: 240px;
+      max-width: 320px;
+    }
+    #milestone-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast-emoji { font-size: 30px; margin-bottom: 6px; }
+    .toast-title { font-family: var(--font-display); font-weight: 800; font-size: 16px; }
+    .toast-sub { font-size: 12px; opacity: 0.8; margin-top: 3px; }
+
+    /* ===== FRIENDS UI ===== */
+    .friends-search-wrap { display: flex; gap: 8px; margin-bottom: 16px; }
+    .friends-search-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid rgba(176,168,154,0.3);
+      border-radius: var(--radius);
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--brown);
+      background: var(--white);
+      outline: none;
+    }
+    .friends-search-input:focus { border-color: var(--tortilla); }
+    .friends-search-btn {
+      padding: 12px 16px;
+      background: var(--salsa);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .friend-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+    }
+    .friend-card:hover { box-shadow: 0 2px 12px rgba(123,79,46,0.1); }
+    .friend-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--tortilla), var(--salsa));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+      color: white;
+    }
+    .friend-card-info { flex: 1; min-width: 0; }
+    .friend-card-name { font-weight: 700; font-size: 14px; color: var(--brown); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .friend-card-meta { font-size: 12px; color: var(--shadow); margin-top: 2px; }
+    .friend-last-log { font-size: 11px; color: var(--salsa); margin-top: 2px; }
+    .friend-card-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .btn-friend-accept { padding: 7px 12px; background: var(--green); color: white; border: none; border-radius: 50px; font-family: var(--font-display); font-weight: 700; font-size: 12px; cursor: pointer; }
+    .btn-friend-decline { padding: 7px 12px; background: var(--cream); color: var(--shadow); border: none; border-radius: 50px; font-family: var(--font-display); font-weight: 700; font-size: 12px; cursor: pointer; }
+    .btn-friend-add { padding: 7px 14px; background: var(--salsa); color: white; border: none; border-radius: 50px; font-family: var(--font-display); font-weight: 700; font-size: 12px; cursor: pointer; }
+    .btn-friend-pending { padding: 7px 14px; background: var(--cream); color: var(--shadow); border: 1.5px solid var(--shadow); border-radius: 50px; font-family: var(--font-display); font-weight: 700; font-size: 12px; cursor: default; }
+    .btn-friend-friends { padding: 7px 12px; background: rgba(107,143,71,0.12); color: var(--green); border: none; border-radius: 50px; font-family: var(--font-display); font-weight: 700; font-size: 12px; cursor: pointer; }
+
+    /* ===== ACTIVITY FEED ===== */
+    .activity-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(176,168,154,0.15);
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--tortilla), var(--salsa));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .activity-body { flex: 1; }
+    .activity-text { font-size: 13px; color: var(--brown); line-height: 1.4; }
+    .activity-text strong { font-weight: 700; }
+    .activity-time { font-size: 11px; color: var(--shadow); margin-top: 3px; opacity: 0.7; }
+
+    /* ===== LEADERBOARD ===== */
+    .leaderboard-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--cream);
+      border-radius: 50px;
+      padding: 4px;
+      margin-bottom: 16px;
+    }
+    .lb-tab {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 50px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--shadow);
+      transition: all 0.2s;
+    }
+    .lb-tab.active { background: var(--salsa); color: white; }
+    .lb-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 8px;
+    }
+    .lb-row.lb-you { border: 2px solid var(--salsa); }
+    .lb-rank { font-family: var(--font-display); font-size: 18px; font-weight: 900; color: var(--shadow); width: 28px; text-align: center; flex-shrink: 0; }
+    .lb-rank.r1 { color: #FFB800; }
+    .lb-rank.r2 { color: #C0C0C0; }
+    .lb-rank.r3 { color: #CD7F32; }
+    .lb-info { flex: 1; }
+    .lb-name { font-weight: 700; font-size: 14px; color: var(--brown); }
+    .lb-sub { font-size: 12px; color: var(--shadow); margin-top: 2px; }
+    .lb-score { text-align: right; }
+    .lb-score-num { font-family: var(--font-display); font-size: 20px; font-weight: 900; color: var(--salsa); }
+    .lb-score-label { font-size: 10px; color: var(--shadow); }
+
+    /* ===== FRIEND PROFILE SCREEN ===== */
+    #friend-profile {
+      background: var(--cream);
+      overflow-y: auto;
+    }
+    .fp-header {
+      background: var(--white);
+      padding: 52px 24px 24px;
+      text-align: center;
+      position: relative;
+    }
+    .fp-back {
+      position: absolute;
+      top: 52px; left: 16px;
+      width: 40px; height: 40px;
+      background: var(--cream);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      border: none;
+      font-size: 18px;
+    }
+
+    /* ===== INVITE LINK BOX ===== */
+    .invite-box {
+      background: var(--cream);
+      border: 2px dashed var(--tortilla);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .invite-url {
+      font-size: 12px;
+      color: var(--shadow);
+      word-break: break-all;
+      margin-bottom: 10px;
+      font-family: monospace;
+    }
+    .btn-copy { padding: 8px 20px; background: var(--brown); color: white; border: none; border-radius: 50px; font-family: var(--font-display); font-weight: 700; font-size: 13px; cursor: pointer; }
+    .btn-copy.copied { background: var(--green); }
+
+    /* ===== MISC ===== */
+    .section-label {
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--shadow);
+      margin-bottom: 10px;
+      margin-top: 4px;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--shadow);
+    }
+    .empty-state-icon { font-size: 40px; margin-bottom: 10px; }
+    .empty-state-text { font-size: 14px; line-height: 1.6; }
+    .first-log-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: linear-gradient(135deg,#FFB800,#FF6B00);
+      color: white;
+      border-radius: 50px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 800;
+    }
   </style>
 </head>
 <body>
@@ -1697,8 +2009,9 @@
       <div class="user-profile-header">
         <button class="user-profile-back" onclick="showScreen('map-screen')">←</button>
         <div class="user-avatar-big">🌯</div>
-        <div class="user-display-name" id="profile-display-name">Maria G.</div>
-        <div class="user-handle" id="profile-handle">@burritoqueen_sd</div>
+        <div class="user-display-name" id="profile-display-name">Burrito Fan</div>
+        <div id="profile-title-badge" class="user-title-badge title-curious">Burrito Curious</div>
+        <div class="user-handle" id="profile-handle">@username_sd</div>
         <div class="burrito-counter">
           <div class="burrito-counter-emoji">🌯</div>
           <div>
@@ -1713,66 +2026,168 @@
           <div class="user-stat-label">Reviews</div>
         </div>
         <div class="user-stat-card">
-          <div class="user-stat-val" id="profile-boosts">0</div>
-          <div class="user-stat-label">Boosts</div>
+          <div class="user-stat-val" id="profile-spots">0</div>
+          <div class="user-stat-label">Spots</div>
         </div>
         <div class="user-stat-card">
-          <div class="user-stat-val" id="profile-favorites">0</div>
-          <div class="user-stat-label">Favorites</div>
+          <div class="user-stat-val" id="profile-friends-count">0</div>
+          <div class="user-stat-label">Friends</div>
         </div>
       </div>
-      <div class="user-badge-section" id="profile-badge-section">
-        <span class="streak-badge" id="profile-streak" style="display:none;">🔥 0-day streak</span>
+
+      <!-- Profile Tabs -->
+      <div class="profile-tabs">
+        <button class="profile-tab active" onclick="switchProfileTab('burritos',this)">My Burritos</button>
+        <button class="profile-tab" onclick="switchProfileTab('friends',this)">Friends <span id="friend-req-badge" class="profile-tab-badge" style="display:none;">0</span></button>
+        <button class="profile-tab" onclick="switchProfileTab('leaderboard',this)">Leaderboard</button>
       </div>
-      <div class="user-section">
+
+      <!-- MY BURRITOS TAB -->
+      <div id="tab-burritos" class="profile-tab-panel active">
+        <!-- Streak -->
+        <div id="streak-block" style="display:none;">
+          <div class="streak-ring-wrap">
+            <div class="streak-ring">
+              <svg viewBox="0 0 48 48">
+                <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(176,168,154,0.25)" stroke-width="4"/>
+                <circle id="streak-arc" cx="24" cy="24" r="20" fill="none" stroke="var(--salsa)" stroke-width="4"
+                  stroke-dasharray="125.6" stroke-dashoffset="125.6" stroke-linecap="round"/>
+              </svg>
+              <div class="streak-ring-num" id="streak-num">0</div>
+            </div>
+            <div>
+              <div class="streak-info-title" id="streak-title">No streak yet</div>
+              <div class="streak-info-sub" id="streak-sub">Log a burrito this week to start your streak</div>
+              <div class="streak-decay" id="streak-decay" style="display:none;">⚠️ Log this week to keep it alive!</div>
+            </div>
+          </div>
+        </div>
+        <!-- Milestone card -->
         <div class="milestone-card">
           <div class="milestone-title">Next Milestone</div>
           <div class="milestone-msg" id="profile-milestone">Log your first burrito to get started! 🌯</div>
-          <button class="milestone-share">Share Progress</button>
         </div>
-      </div>
-      <div class="user-section">
-        <div class="user-section-title">Saved Favorites</div>
-        <div class="fav-card" onclick="openRestaurantProfile(restaurants[0])">
-          <div class="fav-card-icon">🌯</div>
-          <div class="fav-card-info">
-            <div class="fav-card-name">Lucha Libre Taco Shop</div>
-            <div class="fav-card-meta">Mission Hills · 0.3 mi</div>
-          </div>
-          <div class="fav-card-flames">🔥🔥🔥🔥🔥</div>
-        </div>
-        <div class="fav-card" onclick="openRestaurantProfile(restaurants[1])">
-          <div class="fav-card-icon">🌯</div>
-          <div class="fav-card-info">
-            <div class="fav-card-name">Lolita's Mexican Food</div>
-            <div class="fav-card-meta">Kearny Mesa · 2.1 mi</div>
-          </div>
-          <div class="fav-card-flames">🔥🔥🔥🔥</div>
-        </div>
-        <div class="fav-card" onclick="openRestaurantProfile(restaurants[3])">
-          <div class="fav-card-icon">🌯</div>
-          <div class="fav-card-info">
-            <div class="fav-card-name">El Zarape</div>
-            <div class="fav-card-meta">University Heights · 1.4 mi</div>
-          </div>
-          <div class="fav-card-flames">🔥🔥🔥🔥</div>
-        </div>
-      </div>
-      <div class="user-section">
-        <div class="user-section-title">My Burritos</div>
+        <!-- My Burritos list -->
+        <div class="section-label">Recent Logs</div>
         <div id="my-burritos-list">
-          <div id="burritos-empty" style="text-align:center;padding:24px 0;color:var(--shadow);font-size:14px;">
-            <div style="font-size:36px;margin-bottom:8px;">🌯</div>
-            No burritos logged yet. Start eating!
+          <div id="burritos-empty" class="empty-state">
+            <div class="empty-state-icon">🌯</div>
+            <div class="empty-state-text">No burritos logged yet.<br>Go eat something!</div>
           </div>
         </div>
-        <button onclick="showScreen('write-review')" style="width:100%;margin-top:12px;padding:14px;border:2px dashed var(--tortilla);border-radius:var(--radius);background:none;font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--tortilla);cursor:pointer;">+ Log Another Burrito</button>
+        <button onclick="showScreen('write-review')" style="width:100%;margin-top:12px;padding:14px;border:2px dashed var(--tortilla);border-radius:var(--radius);background:none;font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--tortilla);cursor:pointer;">+ Log a Burrito</button>
+        <div style="margin-top:24px;text-align:center;">
+          <button onclick="handleSignOut()" style="background:none;border:2px solid var(--shadow);color:var(--shadow);padding:10px 28px;border-radius:50px;font-family:var(--font-display);font-weight:700;font-size:13px;cursor:pointer;">Sign Out</button>
+        </div>
       </div>
-      <div style="padding:24px;text-align:center;">
-        <button onclick="handleSignOut()" style="background:none;border:2px solid var(--shadow);color:var(--shadow);padding:12px 32px;border-radius:50px;font-family:var(--font-display);font-weight:700;font-size:14px;cursor:pointer;">Sign Out</button>
+
+      <!-- FRIENDS TAB -->
+      <div id="tab-friends" class="profile-tab-panel">
+        <!-- Invite link -->
+        <div class="section-label">Invite Friends</div>
+        <div class="invite-box">
+          <div class="invite-url" id="invite-url-text">Loading your invite link...</div>
+          <button class="btn-copy" id="btn-copy-invite" onclick="copyInviteLink()">Copy Link</button>
+        </div>
+        <!-- Find by username -->
+        <div class="section-label">Find Friends</div>
+        <div class="friends-search-wrap">
+          <input type="text" class="friends-search-input" id="friend-search-input" placeholder="Search by username..." autocomplete="off">
+          <button class="friends-search-btn" onclick="searchFriends()">Search</button>
+        </div>
+        <div id="friend-search-results"></div>
+        <!-- Pending requests -->
+        <div id="friend-requests-section" style="display:none;">
+          <div class="section-label">Friend Requests</div>
+          <div id="friend-requests-list"></div>
+        </div>
+        <!-- Friends list -->
+        <div class="section-label" style="margin-top:16px;">Your Friends</div>
+        <div id="friends-list">
+          <div class="empty-state">
+            <div class="empty-state-icon">👋</div>
+            <div class="empty-state-text">No friends yet.<br>Invite someone or search by username.</div>
+          </div>
+        </div>
+        <!-- Activity feed -->
+        <div id="activity-section" style="display:none;margin-top:8px;">
+          <div class="section-label">Friend Activity</div>
+          <div id="activity-feed"></div>
+        </div>
       </div>
-      <div style="height:100px;"></div>
+
+      <!-- LEADERBOARD TAB -->
+      <div id="tab-leaderboard" class="profile-tab-panel">
+        <div class="leaderboard-tabs">
+          <button class="lb-tab active" onclick="switchLeaderboard('eaten',this)">🌯 Most Eaten</button>
+          <button class="lb-tab" onclick="switchLeaderboard('spots',this)">📍 Most Spots</button>
+        </div>
+        <div id="leaderboard-list">
+          <div class="empty-state">
+            <div class="empty-state-icon">🏆</div>
+            <div class="empty-state-text">Loading leaderboard...</div>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <!-- ===== FRIEND PROFILE SCREEN ===== -->
+  <div id="friend-profile" class="screen">
+    <div class="fp-header" id="fp-header">
+      <button class="fp-back" onclick="closeFriendProfile()">←</button>
+      <div class="user-avatar-big">🌯</div>
+      <div class="user-display-name" id="fp-name">Friend</div>
+      <div id="fp-title" class="user-title-badge title-curious" style="margin-bottom:12px;">Burrito Curious</div>
+      <div class="user-handle" id="fp-handle">@username</div>
+      <div class="burrito-counter" style="margin-top:16px;">
+        <div class="burrito-counter-emoji">🌯</div>
+        <div>
+          <div class="burrito-counter-num" id="fp-eaten">0</div>
+          <div class="burrito-counter-label">Burritos Eaten</div>
+        </div>
+      </div>
+    </div>
+    <div id="fp-body" style="padding:24px 24px 100px;">
+      <div class="user-stats-row" style="padding:0 0 20px;">
+        <div class="user-stat-card">
+          <div class="user-stat-val" id="fp-reviews">0</div>
+          <div class="user-stat-label">Reviews</div>
+        </div>
+        <div class="user-stat-card">
+          <div class="user-stat-val" id="fp-spots">0</div>
+          <div class="user-stat-label">Spots</div>
+        </div>
+        <div class="user-stat-card">
+          <div class="user-stat-val" id="fp-streak">0</div>
+          <div class="user-stat-label">Wk Streak</div>
+        </div>
+      </div>
+      <div class="section-label">Most Recent Burrito</div>
+      <div id="fp-recent-log" class="empty-state" style="padding:20px 0;">
+        <div class="empty-state-icon">🌯</div>
+        <div class="empty-state-text">No logs yet.</div>
+      </div>
+      <div class="section-label" style="margin-top:16px;">Milestones</div>
+      <div id="fp-milestones"></div>
+    </div>
+    <div class="tab-bar">
+      <button class="tab-bar-item" onclick="showScreen('map-screen')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        <span>Map</span>
+      </button>
+      <button class="tab-bar-item" onclick="showScreen('user-profile')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Profile</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== MILESTONE TOAST ===== -->
+  <div id="milestone-toast">
+    <div class="toast-emoji" id="toast-emoji">🎉</div>
+    <div class="toast-title" id="toast-title">Milestone!</div>
+    <div class="toast-sub" id="toast-sub"></div>
   </div>
 
   <!-- ===== AUTH MODAL ===== -->
@@ -1790,6 +2205,11 @@
         <div class="form-group">
           <label class="form-label">Display Name</label>
           <input type="text" id="signup-name" placeholder="Your name" style="width:100%;padding:14px 16px;border:2px solid rgba(176,168,154,0.3);border-radius:var(--radius);font-family:var(--font-body);font-size:15px;color:var(--brown);background:var(--cream);outline:none;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" id="signup-username" placeholder="burritolover_sd" autocomplete="off" style="width:100%;padding:14px 16px;border:2px solid rgba(176,168,154,0.3);border-radius:var(--radius);font-family:var(--font-body);font-size:15px;color:var(--brown);background:var(--cream);outline:none;">
+          <div style="font-size:11px;color:var(--shadow);margin-top:4px;">Letters, numbers &amp; underscores only · shown to friends</div>
         </div>
         <div class="form-group">
           <label class="form-label">Email</label>
@@ -2677,22 +3097,35 @@
 
     async function handleSignup() {
       const name = document.getElementById('signup-name').value.trim() || 'Burrito Fan';
+      const rawUsername = document.getElementById('signup-username').value.trim();
       const email = document.getElementById('signup-email').value.trim();
       const pass = document.getElementById('signup-pass').value;
       if (!email || !pass) { showAuthError('Please fill in all fields.'); return; }
       if (pass.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+      // Sanitize username
+      const username = rawUsername.toLowerCase().replace(/[^a-z0-9_]/g, '') || name.toLowerCase().replace(/[^a-z0-9]/g, '') + '_sd';
+      if (username.length < 3) { showAuthError('Username must be at least 3 characters (letters, numbers, underscores).'); return; }
       try {
+        // Check username uniqueness
+        const uSnap = await db.collection('users').where('username','==',username).limit(1).get();
+        if (!uSnap.empty) { showAuthError('That username is taken. Try another.'); return; }
         const cred = await auth.createUserWithEmailAndPassword(email, pass);
         await cred.user.updateProfile({ displayName: name });
         await db.collection('users').doc(cred.user.uid).set({
           displayName: name,
           email: email,
-          handle: '@' + name.toLowerCase().replace(/[^a-z0-9]/g, '') + '_sd',
+          username: username,
+          handle: '@' + username,
           burritosEaten: 0,
           reviews: 0,
           boosts: 0,
           favorites: 0,
           streak: 0,
+          lastLogWeek: null,
+          uniqueSpots: [],
+          milestones: [],
+          recentLog: null,
+          friendCount: 0,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         completeAuth(cred.user);
@@ -2720,42 +3153,160 @@
       }
     }
 
+    let currentUser = null;
+    let currentUserData = {};
+
     async function completeAuth(user) {
+      currentUser = user;
       document.getElementById('auth-modal').classList.remove('visible');
       document.getElementById('guest-profile').style.display = 'none';
       document.getElementById('loggedin-profile').style.display = 'block';
       try {
-        const doc = await db.collection('users').doc(user.uid).get();
+        const docRef = db.collection('users').doc(user.uid);
+        const doc = await docRef.get();
         const data = doc.exists ? doc.data() : {};
+        currentUserData = data;
+
         const name = data.displayName || user.displayName || 'Burrito Fan';
-        const handle = data.handle || '@' + name.toLowerCase().replace(/[^a-z0-9]/g, '') + '_sd';
+        const handle = data.handle || '@' + name.toLowerCase().replace(/[^a-z0-9]/g,'') + '_sd';
         const eaten = data.burritosEaten || 0;
         const reviews = data.reviews || 0;
-        const boosts = data.boosts || 0;
-        const favorites = data.favorites || 0;
+        const spots = (data.uniqueSpots || []).length;
         const streak = data.streak || 0;
+        const friendCount = data.friendCount || 0;
 
         document.getElementById('profile-display-name').textContent = name;
         document.getElementById('profile-handle').textContent = handle;
         document.getElementById('profile-burritos-eaten').textContent = eaten;
         document.getElementById('profile-reviews').textContent = reviews;
-        document.getElementById('profile-boosts').textContent = boosts;
-        document.getElementById('profile-favorites').textContent = favorites;
+        document.getElementById('profile-spots').textContent = spots;
+        document.getElementById('profile-friends-count').textContent = friendCount;
 
-        // Streak
-        const streakEl = document.getElementById('profile-streak');
-        if (streak > 0) { streakEl.textContent = `🔥 ${streak}-day streak`; streakEl.style.display = ''; }
-        else { streakEl.style.display = 'none'; }
+        // Title badge
+        const titleInfo = getUserTitle(eaten);
+        const badge = document.getElementById('profile-title-badge');
+        badge.textContent = titleInfo.label;
+        badge.className = 'user-title-badge ' + titleInfo.cls;
 
-        // Milestone
-        const milestones = [[1,'First burrito logged!'],[10,'10 burritos — you\'re a regular 🌮'],[25,'25 burritos — getting serious 🔥'],[50,'50 burritos — Burrito Veteran 🏅'],[100,'100 burritos — Legend status 🏆'],[250,'250 burritos — you need help 🚀']];
-        let nextMsg = 'Log your first burrito to get started! 🌯';
-        for (const [n, label] of milestones) {
-          if (eaten < n) { nextMsg = `${n - eaten} burritos until: ${label}`; break; }
+        // Weekly streak
+        renderStreakBlock(streak, data.lastLogWeek);
+
+        // Milestone card
+        document.getElementById('profile-milestone').textContent = getNextMilestoneMsg(eaten);
+
+        // Invite link
+        const inviteUrl = `${location.origin}${location.pathname}?invite=${user.uid}`;
+        document.getElementById('invite-url-text').textContent = inviteUrl;
+
+        // Load friend pins on map
+        loadFriendPins(user.uid);
+
+        // Load pending friend requests badge
+        loadFriendRequestsBadge(user.uid);
+
+        // If leaderboard tab is active, load it
+        if (document.getElementById('tab-leaderboard').classList.contains('active')) {
+          loadLeaderboard('eaten');
         }
-        document.getElementById('profile-milestone').textContent = nextMsg;
       } catch (e) {
+        console.error('completeAuth error:', e);
         document.getElementById('profile-display-name').textContent = user.displayName || 'Burrito Fan';
+      }
+    }
+
+    // ===== TITLE / IDENTITY =====
+    function getUserTitle(n) {
+      if (n >= 500) return { label: '🌯 Burrito God', cls: 'title-god' };
+      if (n >= 100) return { label: '🔥 Burrito Expert', cls: 'title-expert' };
+      if (n >= 50)  return { label: '❤️ Burrito Lover', cls: 'title-lover' };
+      if (n >= 10)  return { label: '👍 Burrito Regular', cls: 'title-regular' };
+      return { label: '👀 Burrito Curious', cls: 'title-curious' };
+    }
+
+    // ===== ISO WEEK =====
+    function getISOWeek(date) {
+      const d = new Date(date);
+      d.setHours(0,0,0,0);
+      d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+      const yearStart = new Date(d.getFullYear(), 0, 1);
+      const week = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+      return d.getFullYear() + '-W' + String(week).padStart(2,'0');
+    }
+
+    // ===== STREAK RENDER =====
+    function renderStreakBlock(streak, lastLogWeek) {
+      const block = document.getElementById('streak-block');
+      if (!block) return;
+      block.style.display = 'block';
+      const currentWeek = getISOWeek(new Date());
+      const numEl = document.getElementById('streak-num');
+      const titleEl = document.getElementById('streak-title');
+      const subEl = document.getElementById('streak-sub');
+      const decayEl = document.getElementById('streak-decay');
+      const arc = document.getElementById('streak-arc');
+
+      numEl.textContent = streak;
+
+      // Arc: max visual at 12-week streak, circumference ~125.6
+      const pct = Math.min(streak / 12, 1);
+      if (arc) arc.style.strokeDashoffset = 125.6 * (1 - pct);
+
+      if (streak === 0) {
+        titleEl.textContent = 'No streak yet';
+        subEl.textContent = 'Log a burrito this week to start!';
+        decayEl.style.display = 'none';
+        return;
+      }
+
+      titleEl.textContent = `${streak}-week streak 🔥`;
+      subEl.textContent = `You've logged every week for ${streak} week${streak > 1 ? 's' : ''}!`;
+
+      // Check if at risk: logged last week but not this week yet
+      const prevWeek = getISOWeek(new Date(Date.now() - 7*24*60*60*1000));
+      if (lastLogWeek === prevWeek && lastLogWeek !== currentWeek) {
+        decayEl.style.display = '';
+      } else {
+        decayEl.style.display = 'none';
+      }
+    }
+
+    // ===== MILESTONE MSG =====
+    const MILESTONE_DEFS = [
+      { n: 1,   emoji: '🌯', title: 'First Burrito!', sub: 'The journey begins.' },
+      { n: 10,  emoji: '🔥', title: '10 Burritos!', sub: 'You\'re a regular now.' },
+      { n: 25,  emoji: '💪', title: '25 Burritos!', sub: 'Getting serious.' },
+      { n: 50,  emoji: '🏅', title: '50 Burritos!', sub: 'Burrito Veteran status.' },
+      { n: 100, emoji: '🏆', title: '100 Burritos!', sub: 'You are a legend.' },
+      { n: 250, emoji: '👑', title: '250 Burritos!', sub: 'Seek help immediately.' },
+      { n: 500, emoji: '🌯', title: '500 Burritos!', sub: 'BURRITO GOD.' },
+    ];
+    function getNextMilestoneMsg(eaten) {
+      for (const m of MILESTONE_DEFS) {
+        if (eaten < m.n) return `${m.n - eaten} more until: ${m.title} ${m.emoji}`;
+      }
+      return '500+ burritos — you are the Burrito God 🌯👑';
+    }
+
+    // ===== MILESTONE TOAST =====
+    function showMilestoneToast(emoji, title, sub) {
+      document.getElementById('toast-emoji').textContent = emoji;
+      document.getElementById('toast-title').textContent = title;
+      document.getElementById('toast-sub').textContent = sub;
+      const toast = document.getElementById('milestone-toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
+    // ===== PROFILE TABS =====
+    function switchProfileTab(tab, btn) {
+      document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.profile-tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + tab).classList.add('active');
+      if (tab === 'friends' && currentUser) {
+        loadFriendsTab(currentUser.uid);
+      } else if (tab === 'leaderboard' && currentUser) {
+        loadLeaderboard('eaten');
       }
     }
 
@@ -2891,7 +3442,7 @@
       btn.classList.add('active');
     }
 
-    function submitBurritoLog() {
+    async function submitBurritoLog() {
       const restaurantIdx = document.getElementById('log-restaurant').value;
       const typeBtn = document.querySelector('.burrito-type-btn.active');
       const sliderVal = parseInt(document.getElementById('size-slider').value);
@@ -2901,14 +3452,14 @@
       if (restaurantIdx === '') { alert('Please select a restaurant.'); return; }
       if (!typeBtn) { alert('Please select a burrito type.'); return; }
 
-      const restaurant = restaurants[parseInt(restaurantIdx)];
+      const idx = parseInt(restaurantIdx);
+      const restaurant = restaurants[idx];
       const type = typeBtn.textContent.trim();
       const size = sizeData[sliderVal].name;
       const rating = ratingBtns.length;
       const flames = '🔥'.repeat(rating) || '—';
-      const date = 'Just now';
 
-      // Add to My Burritos list in the profile
+      // Add to My Burritos list in the profile (optimistic UI)
       const list = document.getElementById('my-burritos-list');
       const card = document.createElement('div');
       card.className = 'burrito-log-card';
@@ -2916,24 +3467,517 @@
         <div class="burrito-log-emoji">🌯</div>
         <div class="burrito-log-info">
           <div class="burrito-log-name">${type} · ${restaurant.name}</div>
-          <div class="burrito-log-meta">${size} · ${flames} · ${date}</div>
+          <div class="burrito-log-meta">${size} · ${flames} · Just now</div>
         </div>`;
-      // Hide empty state
       const emptyEl = document.getElementById('burritos-empty');
       if (emptyEl) emptyEl.style.display = 'none';
       list.insertBefore(card, list.firstChild);
-
-      // Update burrito counter
-      const counterEl = document.querySelector('#loggedin-profile .burrito-counter-num');
-      if (counterEl) counterEl.textContent = parseInt(counterEl.textContent || 0) + 1;
 
       // Reset form
       populateRestaurantSelector();
       document.querySelectorAll('.burrito-type-btn').forEach(b => b.classList.remove('active'));
       document.getElementById('log-notes').value = '';
-
       showScreen('map-screen');
+
+      // ---- Firestore persistence ----
+      if (!currentUser) return;
+      const uid = currentUser.uid;
+      const userRef = db.collection('users').doc(uid);
+      const currentWeek = getISOWeek(new Date());
+
+      try {
+        const docSnap = await userRef.get();
+        const data = docSnap.exists ? docSnap.data() : {};
+        const prevEaten = data.burritosEaten || 0;
+        const newEaten = prevEaten + 1;
+        const prevSpots = data.uniqueSpots || [];
+        const newSpots = prevSpots.includes(idx) ? prevSpots : [...prevSpots, idx];
+        const prevStreak = data.streak || 0;
+        const lastLogWeek = data.lastLogWeek || null;
+        const prevMilestones = data.milestones || [];
+
+        // Weekly streak logic
+        let newStreak = prevStreak;
+        if (lastLogWeek === currentWeek) {
+          // already logged this week — no change
+        } else {
+          const prevWeek = getISOWeek(new Date(Date.now() - 7*24*60*60*1000));
+          if (lastLogWeek === prevWeek || prevStreak === 0) {
+            newStreak = prevStreak + 1; // extend
+          } else {
+            newStreak = 1; // reset
+            if (prevStreak >= 3) showMilestoneToast('💔','Streak reset','Your '+prevStreak+'-week streak ended. Start again!');
+          }
+        }
+
+        // Check new milestones
+        const newMilestones = [...prevMilestones];
+        for (const m of MILESTONE_DEFS) {
+          if (!prevMilestones.includes(m.n) && newEaten >= m.n) {
+            newMilestones.push(m.n);
+            showMilestoneToast(m.emoji, m.title, m.sub);
+          }
+        }
+
+        // Streak milestone toasts
+        if (newStreak > prevStreak) {
+          if (newStreak === 3) showMilestoneToast('🔥','3-Week Streak!','You\'re on fire. Keep it up!');
+          else if (newStreak === 10) showMilestoneToast('🏅','10-Week Streak!','Absolute dedication.');
+          else if (newStreak === 52) showMilestoneToast('👑','Full Year Streak!','A burrito every week for a year. Legendary.');
+        }
+
+        const recentLog = {
+          restaurantName: restaurant.name,
+          restaurantIdx: idx,
+          type, size, flames,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        await userRef.update({
+          burritosEaten: newEaten,
+          reviews: firebase.firestore.FieldValue.increment(rating > 0 ? 1 : 0),
+          uniqueSpots: newSpots,
+          streak: newStreak,
+          lastLogWeek: currentWeek,
+          milestones: newMilestones,
+          recentLog
+        });
+
+        // Update cached data
+        currentUserData = { ...currentUserData, burritosEaten: newEaten, uniqueSpots: newSpots, streak: newStreak, lastLogWeek: currentWeek, milestones: newMilestones, recentLog };
+
+        // Update counter in UI
+        const counterEl = document.getElementById('profile-burritos-eaten');
+        if (counterEl) counterEl.textContent = newEaten;
+        document.getElementById('profile-spots').textContent = newSpots.length;
+        document.getElementById('profile-reviews').textContent = (data.reviews || 0) + (rating > 0 ? 1 : 0);
+
+        // Update title badge
+        const titleInfo = getUserTitle(newEaten);
+        const badge = document.getElementById('profile-title-badge');
+        if (badge) { badge.textContent = titleInfo.label; badge.className = 'user-title-badge ' + titleInfo.cls; }
+
+        // Update milestone msg
+        const mlEl = document.getElementById('profile-milestone');
+        if (mlEl) mlEl.textContent = getNextMilestoneMsg(newEaten);
+
+        // Update streak block
+        renderStreakBlock(newStreak, currentWeek);
+
+        // Check "first to log" this restaurant
+        const firstLogRef = db.collection('firstLogs').doc(String(idx));
+        const firstLogSnap = await firstLogRef.get();
+        if (!firstLogSnap.exists) {
+          await firstLogRef.set({ uid, displayName: currentUserData.displayName || 'Someone', username: currentUserData.username || '' });
+          showMilestoneToast('🥇', 'First to Log!', 'You\'re the first person to log ' + restaurant.name + ' on Burrito!');
+        }
+
+      } catch (e) {
+        console.error('Log save error:', e);
+      }
     }
+
+    // ===== FRIENDS SYSTEM =====
+
+    async function loadFriendRequestsBadge(uid) {
+      try {
+        const snap = await db.collection('friendRequests')
+          .where('toUid','==',uid).where('status','==','pending').get();
+        const badge = document.getElementById('friend-req-badge');
+        if (!badge) return;
+        if (snap.size > 0) {
+          badge.textContent = snap.size;
+          badge.style.display = 'inline-flex';
+        } else {
+          badge.style.display = 'none';
+        }
+      } catch(e) {}
+    }
+
+    async function searchFriends() {
+      if (!currentUser) { document.getElementById('auth-modal').classList.add('visible'); return; }
+      const query = document.getElementById('friend-search-input').value.trim().toLowerCase().replace(/^@/,'');
+      if (!query) return;
+      const container = document.getElementById('friend-search-results');
+      container.innerHTML = '<div style="padding:12px 0;color:var(--shadow);font-size:14px;">Searching...</div>';
+      try {
+        const snap = await db.collection('users')
+          .where('username','>=',query).where('username','<=',query+'\uf8ff').limit(10).get();
+        if (snap.empty) {
+          container.innerHTML = '<div class="empty-state" style="padding:16px 0;"><div class="empty-state-icon">🔍</div><div class="empty-state-text">No users found for "'+query+'"</div></div>';
+          return;
+        }
+        // Get current friends and pending requests
+        const friendsSnap = await db.collection('users').doc(currentUser.uid).collection('friends').get();
+        const friendUids = new Set(friendsSnap.docs.map(d => d.id));
+        const sentSnap = await db.collection('friendRequests')
+          .where('fromUid','==',currentUser.uid).where('status','==','pending').get();
+        const sentTo = new Set(sentSnap.docs.map(d => d.data().toUid));
+
+        let html = '';
+        snap.forEach(doc => {
+          if (doc.id === currentUser.uid) return;
+          const d = doc.data();
+          const uid = doc.id;
+          const isFriend = friendUids.has(uid);
+          const isPending = sentTo.has(uid);
+          let btn;
+          if (isFriend) btn = `<button class="btn-friend-friends">✓ Friends</button>`;
+          else if (isPending) btn = `<button class="btn-friend-pending">Pending</button>`;
+          else btn = `<button class="btn-friend-add" onclick="sendFriendRequest('${uid}','${(d.displayName||'').replace(/'/g,"\\'")}')">+ Add</button>`;
+          html += `
+            <div class="friend-card" style="cursor:default;">
+              <div class="friend-avatar">🌯</div>
+              <div class="friend-card-info">
+                <div class="friend-card-name">${d.displayName || 'Unknown'}</div>
+                <div class="friend-card-meta">@${d.username || ''} · ${d.burritosEaten||0} burritos</div>
+              </div>
+              <div class="friend-card-actions">${btn}</div>
+            </div>`;
+        });
+        container.innerHTML = html || '<div class="empty-state" style="padding:16px 0;"><div class="empty-state-text">No results.</div></div>';
+      } catch(e) {
+        container.innerHTML = '<div style="color:var(--salsa);font-size:13px;">Error searching. Try again.</div>';
+        console.error(e);
+      }
+    }
+
+    async function sendFriendRequest(toUid, toName) {
+      if (!currentUser) return;
+      try {
+        // Check if request already exists
+        const existing = await db.collection('friendRequests')
+          .where('fromUid','==',currentUser.uid).where('toUid','==',toUid).limit(1).get();
+        if (!existing.empty) return;
+        await db.collection('friendRequests').add({
+          fromUid: currentUser.uid,
+          fromName: currentUserData.displayName || 'Burrito Fan',
+          fromUsername: currentUserData.username || '',
+          toUid,
+          toName,
+          status: 'pending',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        showMilestoneToast('✉️','Request Sent!','Friend request sent to '+toName);
+        searchFriends(); // refresh results
+      } catch(e) { console.error(e); }
+    }
+
+    async function acceptFriendRequest(fromUid, fromName, fromUsername, requestId) {
+      if (!currentUser) return;
+      const uid = currentUser.uid;
+      const myName = currentUserData.displayName || 'Burrito Fan';
+      const myUsername = currentUserData.username || '';
+      const myEaten = currentUserData.burritosEaten || 0;
+      try {
+        const batch = db.batch();
+        // Update request status
+        batch.update(db.collection('friendRequests').doc(requestId), { status: 'accepted' });
+        // Add friend to my subcollection
+        batch.set(db.collection('users').doc(uid).collection('friends').doc(fromUid), {
+          displayName: fromName, username: fromUsername, addedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        // Add me to their subcollection
+        batch.set(db.collection('users').doc(fromUid).collection('friends').doc(uid), {
+          displayName: myName, username: myUsername, addedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        // Increment friendCount for both
+        batch.update(db.collection('users').doc(uid), { friendCount: firebase.firestore.FieldValue.increment(1) });
+        batch.update(db.collection('users').doc(fromUid), { friendCount: firebase.firestore.FieldValue.increment(1) });
+        await batch.commit();
+        currentUserData.friendCount = (currentUserData.friendCount || 0) + 1;
+        document.getElementById('profile-friends-count').textContent = currentUserData.friendCount;
+        loadFriendsTab(uid); // refresh
+      } catch(e) { console.error(e); }
+    }
+
+    async function declineFriendRequest(requestId) {
+      try {
+        await db.collection('friendRequests').doc(requestId).update({ status: 'declined' });
+        if (currentUser) loadFriendsTab(currentUser.uid);
+      } catch(e) {}
+    }
+
+    async function loadFriendsTab(uid) {
+      // Load pending requests
+      try {
+        const reqSnap = await db.collection('friendRequests')
+          .where('toUid','==',uid).where('status','==','pending').get();
+        const reqSection = document.getElementById('friend-requests-section');
+        const reqList = document.getElementById('friend-requests-list');
+        if (reqSnap.empty) {
+          reqSection.style.display = 'none';
+        } else {
+          reqSection.style.display = 'block';
+          let html = '';
+          reqSnap.forEach(doc => {
+            const d = doc.data();
+            html += `
+              <div class="friend-card" style="cursor:default;">
+                <div class="friend-avatar">🌯</div>
+                <div class="friend-card-info">
+                  <div class="friend-card-name">${d.fromName || 'Someone'}</div>
+                  <div class="friend-card-meta">@${d.fromUsername||''} wants to be friends</div>
+                </div>
+                <div class="friend-card-actions">
+                  <button class="btn-friend-accept" onclick="acceptFriendRequest('${d.fromUid}','${(d.fromName||'').replace(/'/g,"\\'")}','${d.fromUsername||''}','${doc.id}')">Accept</button>
+                  <button class="btn-friend-decline" onclick="declineFriendRequest('${doc.id}')">Decline</button>
+                </div>
+              </div>`;
+          });
+          reqList.innerHTML = html;
+          // Update badge
+          const badge = document.getElementById('friend-req-badge');
+          if (badge) { badge.textContent = reqSnap.size; badge.style.display = 'inline-flex'; }
+        }
+      } catch(e) {}
+
+      // Load friends list
+      try {
+        const friendsSnap = await db.collection('users').doc(uid).collection('friends').orderBy('addedAt','desc').limit(50).get();
+        const friendsList = document.getElementById('friends-list');
+        if (friendsSnap.empty) {
+          friendsList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👋</div><div class="empty-state-text">No friends yet.<br>Search by username or share your invite link.</div></div>';
+          document.getElementById('activity-section').style.display = 'none';
+          return;
+        }
+        // Fetch each friend's full data for activity feed
+        let html = '';
+        let activityItems = [];
+        const friendUids = friendsSnap.docs.map(d => d.id);
+        // Fetch friend data in parallel (up to 10)
+        const friendDataPromises = friendUids.slice(0,10).map(fuid =>
+          db.collection('users').doc(fuid).get()
+        );
+        const friendDocs = await Promise.all(friendDataPromises);
+        friendDocs.forEach(fdoc => {
+          if (!fdoc.exists) return;
+          const fd = fdoc.data();
+          const fuid = fdoc.id;
+          const titleInfo = getUserTitle(fd.burritosEaten || 0);
+          const recentLog = fd.recentLog;
+          let lastLogStr = 'No logs yet';
+          if (recentLog && recentLog.restaurantName) {
+            lastLogStr = `🌯 ${recentLog.type || ''} at ${recentLog.restaurantName}`;
+          }
+          html += `
+            <div class="friend-card" onclick="openFriendProfile('${fuid}')">
+              <div class="friend-avatar">🌯</div>
+              <div class="friend-card-info">
+                <div class="friend-card-name">${fd.displayName || 'Friend'}</div>
+                <div class="friend-card-meta">@${fd.username||''} · ${fd.burritosEaten||0} burritos</div>
+                <div class="friend-last-log">${lastLogStr}</div>
+              </div>
+              <div style="font-size:20px;">›</div>
+            </div>`;
+          // Build activity feed
+          if (recentLog && recentLog.restaurantName) {
+            activityItems.push({ name: fd.displayName, log: recentLog, ts: recentLog.timestamp });
+          }
+        });
+        friendsList.innerHTML = html;
+
+        // Activity feed
+        if (activityItems.length > 0) {
+          document.getElementById('activity-section').style.display = 'block';
+          activityItems.sort((a,b) => {
+            const ta = a.ts && a.ts.toDate ? a.ts.toDate().getTime() : 0;
+            const tb = b.ts && b.ts.toDate ? b.ts.toDate().getTime() : 0;
+            return tb - ta;
+          });
+          const feedHtml = activityItems.map(item => {
+            const timeStr = item.ts && item.ts.toDate ? timeAgo(item.ts.toDate()) : 'recently';
+            return `
+              <div class="activity-item">
+                <div class="activity-avatar">🌯</div>
+                <div class="activity-body">
+                  <div class="activity-text"><strong>${item.name}</strong> logged a ${item.log.type||'burrito'} at ${item.log.restaurantName} ${item.log.flames||''}</div>
+                  <div class="activity-time">${timeStr}</div>
+                </div>
+              </div>`;
+          }).join('');
+          document.getElementById('activity-feed').innerHTML = feedHtml;
+        } else {
+          document.getElementById('activity-section').style.display = 'none';
+        }
+      } catch(e) { console.error('loadFriendsTab error:', e); }
+    }
+
+    function timeAgo(date) {
+      const secs = Math.floor((Date.now() - date.getTime()) / 1000);
+      if (secs < 60) return 'just now';
+      if (secs < 3600) return Math.floor(secs/60) + 'm ago';
+      if (secs < 86400) return Math.floor(secs/3600) + 'h ago';
+      return Math.floor(secs/86400) + 'd ago';
+    }
+
+    // ===== INVITE LINK =====
+    function copyInviteLink() {
+      const url = document.getElementById('invite-url-text').textContent;
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = document.getElementById('btn-copy-invite');
+        btn.textContent = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy Link'; btn.classList.remove('copied'); }, 2500);
+      });
+    }
+
+    function handleInviteLink() {
+      const params = new URLSearchParams(location.search);
+      const inviterUid = params.get('invite');
+      if (!inviterUid) return;
+      // Store for after signup
+      sessionStorage.setItem('pendingInvite', inviterUid);
+      // Show auth modal with signup tab after a brief delay
+      setTimeout(() => {
+        if (!currentUser) {
+          document.getElementById('auth-modal').classList.add('visible');
+          showAuthTab('signup');
+        }
+      }, 1500);
+    }
+
+    // ===== LEADERBOARD =====
+    async function loadLeaderboard(type) {
+      const container = document.getElementById('leaderboard-list');
+      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">Loading...</div></div>';
+      try {
+        const field = type === 'spots' ? 'uniqueSpots' : 'burritosEaten';
+        const label = type === 'spots' ? 'spots' : '🌯';
+        let snap;
+        if (type === 'spots') {
+          // uniqueSpots is an array — can't order by array length in Firestore directly
+          // Fallback: fetch top 50 by burritosEaten and sort by spots client-side
+          snap = await db.collection('users').orderBy('burritosEaten','desc').limit(50).get();
+        } else {
+          snap = await db.collection('users').orderBy('burritosEaten','desc').limit(50).get();
+        }
+        if (snap.empty) { container.innerHTML = '<div class="empty-state"><div class="empty-state-text">No data yet.</div></div>'; return; }
+        let rows = [];
+        snap.forEach(doc => {
+          const d = doc.data();
+          rows.push({ uid: doc.id, name: d.displayName||'Unknown', username: d.username||'', eaten: d.burritosEaten||0, spots: (d.uniqueSpots||[]).length, streak: d.streak||0 });
+        });
+        if (type === 'spots') rows.sort((a,b) => b.spots - a.spots);
+        const myUid = currentUser ? currentUser.uid : null;
+        let html = '';
+        rows.slice(0,20).forEach((row,i) => {
+          const rank = i+1;
+          const rankCls = rank===1?'r1':rank===2?'r2':rank===3?'r3':'';
+          const rankLabel = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
+          const score = type === 'spots' ? row.spots : row.eaten;
+          const isYou = row.uid === myUid;
+          html += `
+            <div class="lb-row${isYou?' lb-you':''}" onclick="row.uid!=='${myUid}'&&openFriendProfile('${row.uid}')">
+              <div class="lb-rank ${rankCls}">${rankLabel}</div>
+              <div class="lb-info">
+                <div class="lb-name">${row.name}${isYou?' <span style="color:var(--salsa);font-size:11px;">(You)</span>':''}</div>
+                <div class="lb-sub">@${row.username} · ${row.streak}wk streak</div>
+              </div>
+              <div class="lb-score">
+                <div class="lb-score-num">${score}</div>
+                <div class="lb-score-label">${label}</div>
+              </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+      } catch(e) { console.error('leaderboard error:', e); container.innerHTML = '<div style="color:var(--salsa);font-size:13px;padding:16px 0;">Could not load leaderboard.</div>'; }
+    }
+
+    function switchLeaderboard(type, btn) {
+      document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      loadLeaderboard(type);
+    }
+
+    // ===== FRIEND PROFILE =====
+    async function openFriendProfile(uid) {
+      if (!uid || uid === 'undefined') return;
+      showScreen('friend-profile');
+      // Fetch data
+      try {
+        const doc = await db.collection('users').doc(uid).get();
+        if (!doc.exists) return;
+        const d = doc.data();
+        const titleInfo = getUserTitle(d.burritosEaten||0);
+        document.getElementById('fp-name').textContent = d.displayName || 'Friend';
+        const fpTitle = document.getElementById('fp-title');
+        fpTitle.textContent = titleInfo.label;
+        fpTitle.className = 'user-title-badge ' + titleInfo.cls;
+        document.getElementById('fp-handle').textContent = '@' + (d.username||'');
+        document.getElementById('fp-eaten').textContent = d.burritosEaten||0;
+        document.getElementById('fp-reviews').textContent = d.reviews||0;
+        document.getElementById('fp-spots').textContent = (d.uniqueSpots||[]).length;
+        document.getElementById('fp-streak').textContent = d.streak||0;
+
+        // Recent log
+        const recentEl = document.getElementById('fp-recent-log');
+        if (d.recentLog && d.recentLog.restaurantName) {
+          const rl = d.recentLog;
+          const timeStr = rl.timestamp && rl.timestamp.toDate ? timeAgo(rl.timestamp.toDate()) : 'recently';
+          recentEl.innerHTML = `
+            <div class="burrito-log-card">
+              <div class="burrito-log-emoji">🌯</div>
+              <div class="burrito-log-info">
+                <div class="burrito-log-name">${rl.type||'Burrito'} · ${rl.restaurantName}</div>
+                <div class="burrito-log-meta">${rl.size||''} · ${rl.flames||''} · ${timeStr}</div>
+              </div>
+            </div>`;
+        } else {
+          recentEl.innerHTML = '<div class="empty-state" style="padding:16px 0;"><div class="empty-state-icon">🌯</div><div class="empty-state-text">No logs yet.</div></div>';
+        }
+
+        // Milestones
+        const achieved = d.milestones || [];
+        const mlEl = document.getElementById('fp-milestones');
+        if (achieved.length === 0) {
+          mlEl.innerHTML = '<div style="color:var(--shadow);font-size:13px;">No milestones yet.</div>';
+        } else {
+          mlEl.innerHTML = MILESTONE_DEFS.filter(m => achieved.includes(m.n)).map(m =>
+            `<div style="display:inline-flex;align-items:center;gap:6px;background:var(--white);border-radius:50px;padding:6px 14px;margin:0 6px 6px 0;font-size:13px;font-weight:700;color:var(--brown);">${m.emoji} ${m.title}</div>`
+          ).join('');
+        }
+      } catch(e) { console.error('openFriendProfile error:', e); }
+    }
+
+    function closeFriendProfile() {
+      showScreen('user-profile');
+    }
+
+    // ===== FRIEND PINS ON MAP =====
+    let friendPinLayer = null;
+    async function loadFriendPins(uid) {
+      if (!uid || !window.map) return;
+      try {
+        const friendsSnap = await db.collection('users').doc(uid).collection('friends').limit(20).get();
+        if (friendsSnap.empty) return;
+        const friendUids = friendsSnap.docs.map(d => d.id);
+        const friendDocs = await Promise.all(friendUids.map(fuid => db.collection('users').doc(fuid).get()));
+        if (friendPinLayer) friendPinLayer.clearLayers();
+        friendPinLayer = L.layerGroup().addTo(window.map);
+        friendDocs.forEach(fdoc => {
+          if (!fdoc.exists) return;
+          const fd = fdoc.data();
+          if (!fd.recentLog || !fd.recentLog.restaurantIdx && fd.recentLog.restaurantIdx !== 0) return;
+          const rIdx = fd.recentLog.restaurantIdx;
+          if (rIdx == null || !restaurants[rIdx]) return;
+          const r = restaurants[rIdx];
+          const icon = L.divIcon({
+            className: 'friend-pin',
+            html: `<div class="pin-wrapper"><div class="friend-pin-inner" style="width:32px;height:32px;">👤</div></div>`,
+            iconSize: [32,32],
+            iconAnchor: [16,32],
+          });
+          const marker = L.marker([r.lat, r.lng], { icon })
+            .addTo(friendPinLayer)
+            .bindPopup(`<strong>${fd.displayName||'Friend'}</strong><br>Last ate here`);
+          marker.on('click', () => openFriendProfile(fdoc.id));
+        });
+      } catch(e) {}
+    }
+
+    // ===== INVITE LINK HANDLER (on page load) =====
+    handleInviteLink();
 
     // Persist auth state — auto-login returning users
     auth.onAuthStateChanged(user => {
@@ -2944,6 +3988,8 @@
           showScreen('map-screen');
         }
       } else {
+        currentUser = null;
+        currentUserData = {};
         document.getElementById('guest-profile').style.display = 'block';
         document.getElementById('loggedin-profile').style.display = 'none';
       }
