@@ -14,12 +14,12 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script>
     firebase.initializeApp({
-      apiKey: "AIzaSyDiMaVDFNqSk0nf2qv9XAnQMoSCy2fmfpI",
+      apiKey: "AIzaSyAycQYZrrEyAIPn6XqyYTO4e0E0d2VTrcY",
       authDomain: "burrito-app-20044.firebaseapp.com",
       projectId: "burrito-app-20044",
       storageBucket: "burrito-app-20044.firebasestorage.app",
-      messagingSenderId: "1053426882780",
-      appId: "1:1053426882780:web:b7317e3259a2b4bbf13c2e"
+      messagingSenderId: "109115015906",
+      appId: "1:109115015906:web:8ef619a23e909224ce14bb"
     });
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -657,6 +657,41 @@
       cursor: pointer;
     }
 
+    /* ===== BURRITO TYPE / SIZE BUTTONS ===== */
+    .burrito-type-btn {
+      padding: 8px 14px;
+      border: 2px solid rgba(176,168,154,0.4);
+      border-radius: 50px;
+      background: var(--white);
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--brown);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .burrito-type-btn.active {
+      background: var(--salsa);
+      border-color: var(--salsa);
+      color: white;
+    }
+    .burrito-size-btn {
+      width: 100%;
+      text-align: left;
+      padding: 12px 16px;
+      border: 2px solid rgba(176,168,154,0.3);
+      border-radius: var(--radius-sm);
+      background: var(--white);
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--brown);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .burrito-size-btn.active {
+      border-color: var(--salsa);
+      background: rgba(232,93,38,0.06);
+    }
+
     /* ===== WRITE REVIEW ===== */
     #write-review {
       background: var(--cream);
@@ -1149,6 +1184,24 @@
     /* ===== AUTH MODAL ===== */
     #auth-modal.visible { display: flex !important; }
 
+    /* ===== BURRITO LOG CARDS ===== */
+    .burrito-log-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(176,168,154,0.2);
+    }
+    .burrito-log-card:last-of-type { border-bottom: none; }
+    .burrito-log-emoji { font-size: 28px; }
+    .burrito-log-name {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--brown);
+      margin-bottom: 4px;
+    }
+    .burrito-log-meta { font-size: 12px; color: var(--shadow); }
+
     /* ===== UTILITIES ===== */
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
   </style>
@@ -1249,7 +1302,7 @@
       </button>
       <button class="tab-bar-item" onclick="showScreen('write-review')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-        <span>Review</span>
+        <span>Log Burrito</span>
       </button>
       <button class="tab-bar-item" onclick="showScreen('user-profile')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -1265,20 +1318,45 @@
     <div class="profile-body" id="profile-body"></div>
   </div>
 
-  <!-- ===== WRITE REVIEW ===== -->
+  <!-- ===== LOG BURRITO ===== -->
   <div id="write-review" class="screen">
     <div class="review-form-header">
       <button class="profile-back" style="position:static;box-shadow:none;background:var(--cream);" onclick="showScreen('map-screen')">←</button>
-      <div class="review-form-title">Write a Review</div>
+      <div class="review-form-title">Log a Burrito 🌯</div>
     </div>
     <div class="review-form-body">
       <div class="form-group">
         <label class="form-label">Restaurant</label>
-        <div style="font-weight:700;font-size:17px;color:var(--brown);">Lucha Libre Taco Shop</div>
-        <div style="font-size:13px;color:var(--shadow);margin-top:4px;">Mission Hills, San Diego</div>
+        <select id="log-restaurant" style="width:100%;padding:14px 16px;border:2px solid rgba(176,168,154,0.3);border-radius:var(--radius);font-family:var(--font-body);font-size:15px;color:var(--brown);background:var(--cream);outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;">
+          <option value="">Select a restaurant...</option>
+        </select>
+        <div id="log-nearby-hint" style="font-size:12px;color:var(--green);margin-top:6px;display:none;">📍 Auto-selected based on your location</div>
       </div>
       <div class="form-group">
-        <label class="form-label">Your Heat Rating</label>
+        <label class="form-label">Burrito Type</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;" id="burrito-type-selector">
+          <button class="burrito-type-btn" onclick="selectBurritoType(this)">🥩 Carne Asada</button>
+          <button class="burrito-type-btn" onclick="selectBurritoType(this)">🐷 Carnitas</button>
+          <button class="burrito-type-btn" onclick="selectBurritoType(this)">🍗 Chicken</button>
+          <button class="burrito-type-btn" onclick="selectBurritoType(this)">🌿 Veggie</button>
+          <button class="burrito-type-btn" onclick="selectBurritoType(this)">🥚 Breakfast</button>
+          <button class="burrito-type-btn" onclick="selectBurritoType(this)">🌶️ Chile Verde</button>
+          <button class="burrito-type-btn" onclick="selectBurritoType(this)">🦐 Shrimp</button>
+          <button class="burrito-type-btn" onclick="selectBurritoType(this)">🤷 Mystery Meat</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Size</label>
+        <div style="display:flex;flex-direction:column;gap:8px;" id="burrito-size-selector">
+          <button class="burrito-size-btn" onclick="selectBurritoSize(this)" data-size="snack">🐣 <strong>Baby Burrito</strong> <span style="color:var(--shadow);font-size:13px;">— "I'm being responsible"</span></button>
+          <button class="burrito-size-btn" onclick="selectBurritoSize(this)" data-size="regular">🌮 <strong>The Regular</strong> <span style="color:var(--shadow);font-size:13px;">— "Normal human portions"</span></button>
+          <button class="burrito-size-btn" onclick="selectBurritoSize(this)" data-size="large">🏋️ <strong>The Commitment</strong> <span style="color:var(--shadow);font-size:13px;">— "I skipped the gym for this"</span></button>
+          <button class="burrito-size-btn" onclick="selectBurritoSize(this)" data-size="xl">🦕 <strong>The Regret</strong> <span style="color:var(--shadow);font-size:13px;">— "I knew what I was doing"</span></button>
+          <button class="burrito-size-btn" onclick="selectBurritoSize(this)" data-size="xxl">🚀 <strong>Send Help</strong> <span style="color:var(--shadow);font-size:13px;">— "My jaw is permanently dislocated"</span></button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Heat Rating</label>
         <div class="flame-selector" id="flame-selector">
           <button class="flame-btn active" data-rating="1">🔥</button>
           <button class="flame-btn active" data-rating="2">🔥</button>
@@ -1288,8 +1366,8 @@
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Your Review</label>
-        <textarea class="form-textarea" placeholder="What did you think? Tell us about the tortilla, fillings, salsa..."></textarea>
+        <label class="form-label">Notes</label>
+        <textarea class="form-textarea" id="log-notes" placeholder="What did you think? Tortilla, fillings, salsa..."></textarea>
       </div>
       <div class="form-group">
         <label class="form-label">Loyalty Boost (optional)</label>
@@ -1308,7 +1386,7 @@
         </div>
       </div>
       <div class="submit-review-btn">
-        <button class="btn-primary" onclick="showScreen('map-screen')">Submit Review 🔥</button>
+        <button class="btn-primary" onclick="submitBurritoLog()">Log Burrito 🌯</button>
       </div>
     </div>
   </div>
@@ -1436,6 +1514,34 @@
           <div class="fav-card-flames">🔥🔥🔥🔥</div>
         </div>
       </div>
+      <div class="user-section">
+        <div class="user-section-title">My Burritos</div>
+        <div id="my-burritos-list">
+          <!-- Populated dynamically from Firestore -->
+          <div class="burrito-log-card">
+            <div class="burrito-log-emoji">🌯</div>
+            <div class="burrito-log-info">
+              <div class="burrito-log-name">Carne Asada · Lucha Libre Taco Shop</div>
+              <div class="burrito-log-meta">The Commitment 🏋️ · 🔥🔥🔥🔥🔥 · 2 days ago</div>
+            </div>
+          </div>
+          <div class="burrito-log-card">
+            <div class="burrito-log-emoji">🌯</div>
+            <div class="burrito-log-info">
+              <div class="burrito-log-name">Breakfast · Lolita's Mexican Food</div>
+              <div class="burrito-log-meta">The Regret 🦕 · 🔥🔥🔥🔥 · 5 days ago</div>
+            </div>
+          </div>
+          <div class="burrito-log-card">
+            <div class="burrito-log-emoji">🌯</div>
+            <div class="burrito-log-info">
+              <div class="burrito-log-name">Carnitas · El Zarape</div>
+              <div class="burrito-log-meta">The Regular 🌮 · 🔥🔥🔥🔥 · 1 week ago</div>
+            </div>
+          </div>
+        </div>
+        <button onclick="showScreen('write-review')" style="width:100%;margin-top:12px;padding:14px;border:2px dashed var(--tortilla);border-radius:var(--radius);background:none;font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--tortilla);cursor:pointer;">+ Log Another Burrito</button>
+      </div>
       <div style="padding:24px;text-align:center;">
         <button onclick="handleSignOut()" style="background:none;border:2px solid var(--shadow);color:var(--shadow);padding:12px 32px;border-radius:50px;font-family:var(--font-display);font-weight:700;font-size:14px;cursor:pointer;">Sign Out</button>
       </div>
@@ -1446,11 +1552,11 @@
   <!-- ===== AUTH MODAL ===== -->
   <div id="auth-modal" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(123,79,46,0.4);z-index:9999;display:none;align-items:center;justify-content:center;padding:24px;">
     <div style="background:var(--white);border-radius:24px;width:100%;max-width:480px;padding:32px 24px 40px;max-height:85vh;overflow-y:auto;display:flex;flex-direction:column;align-items:center;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;width:100%;">
         <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--brown);">Welcome to Burrito 🌯</div>
-        <button onclick="document.getElementById('auth-modal').classList.remove('visible')" style="background:var(--cream);border:none;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+        <button onclick="document.getElementById('auth-modal').classList.remove('visible')" style="background:var(--cream);border:none;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
       </div>
-      <div id="auth-tabs" style="display:flex;gap:4px;background:var(--cream);border-radius:50px;padding:4px;margin-bottom:24px;">
+      <div id="auth-tabs" style="display:flex;gap:4px;background:var(--cream);border-radius:50px;padding:4px;margin-bottom:24px;width:100%;">
         <button class="auth-tab active" data-tab="signup" onclick="showAuthTab('signup')" style="flex:1;padding:10px;border:none;border-radius:50px;font-family:var(--font-display);font-weight:700;font-size:14px;cursor:pointer;background:var(--salsa);color:white;">Sign Up</button>
         <button class="auth-tab" data-tab="login" onclick="showAuthTab('login')" style="flex:1;padding:10px;border:none;border-radius:50px;font-family:var(--font-display);font-weight:700;font-size:14px;cursor:pointer;background:transparent;color:var(--brown);">Log In</button>
       </div>
@@ -1886,6 +1992,9 @@
       if (id === 'search-results') {
         renderSearchResults();
       }
+      if (id === 'write-review') {
+        populateRestaurantSelector();
+      }
 
       // Update tab bar
       document.querySelectorAll('.tab-bar-item').forEach(t => t.classList.remove('active'));
@@ -2293,6 +2402,86 @@
         document.getElementById('guest-profile').style.display = 'block';
         document.getElementById('loggedin-profile').style.display = 'none';
       });
+    }
+
+    // ===== LOG BURRITO =====
+    function populateRestaurantSelector() {
+      const select = document.getElementById('log-restaurant');
+      select.innerHTML = '<option value="">Select a restaurant...</option>';
+      restaurants.forEach((r, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = r.name + ' — ' + r.category;
+        select.appendChild(opt);
+      });
+      // Auto-select nearby restaurant if within ~0.5km
+      if (userLocation.lat && userLocation.lng) {
+        let closest = null, closestDist = Infinity;
+        restaurants.forEach((r, i) => {
+          const d = Math.hypot(r.lat - userLocation.lat, r.lng - userLocation.lng);
+          if (d < closestDist) { closestDist = d; closest = i; }
+        });
+        const thresholdDeg = 0.005; // ~0.5km
+        if (closestDist < thresholdDeg) {
+          select.value = closest;
+          document.getElementById('log-nearby-hint').style.display = 'block';
+        } else {
+          document.getElementById('log-nearby-hint').style.display = 'none';
+        }
+      }
+    }
+
+    function selectBurritoType(btn) {
+      document.querySelectorAll('.burrito-type-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function selectBurritoSize(btn) {
+      document.querySelectorAll('.burrito-size-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function submitBurritoLog() {
+      const restaurantIdx = document.getElementById('log-restaurant').value;
+      const typeBtn = document.querySelector('.burrito-type-btn.active');
+      const sizeBtn = document.querySelector('.burrito-size-btn.active');
+      const ratingBtns = document.querySelectorAll('#flame-selector .flame-btn.active');
+      const notes = document.getElementById('log-notes').value;
+
+      if (!restaurantIdx) { alert('Please select a restaurant.'); return; }
+      if (!typeBtn) { alert('Please select a burrito type.'); return; }
+      if (!sizeBtn) { alert('Please select a size.'); return; }
+
+      const restaurant = restaurants[parseInt(restaurantIdx)];
+      const type = typeBtn.textContent.trim();
+      const size = sizeBtn.querySelector('strong').textContent;
+      const rating = ratingBtns.length;
+      const flames = '🔥'.repeat(rating);
+      const date = 'Just now';
+
+      // Add to My Burritos list in the profile
+      const list = document.getElementById('my-burritos-list');
+      const card = document.createElement('div');
+      card.className = 'burrito-log-card';
+      card.innerHTML = `
+        <div class="burrito-log-emoji">🌯</div>
+        <div class="burrito-log-info">
+          <div class="burrito-log-name">${type} · ${restaurant.name}</div>
+          <div class="burrito-log-meta">${size} · ${flames} · ${date}</div>
+        </div>`;
+      list.insertBefore(card, list.firstChild);
+
+      // Update burrito counter
+      const counterEl = document.querySelector('#loggedin-profile .burrito-counter-num');
+      if (counterEl) counterEl.textContent = parseInt(counterEl.textContent || 0) + 1;
+
+      // Reset form
+      document.getElementById('log-restaurant').value = '';
+      document.querySelectorAll('.burrito-type-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.burrito-size-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('log-notes').value = '';
+
+      showScreen('map-screen');
     }
 
     // Persist auth state — auto-login returning users
