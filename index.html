@@ -8,6 +8,22 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" onerror="window._leafletFailed=true"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey: "AIzaSyDiMaVDFNqSk0nf2qv9XAnQMoSCy2fmfpI",
+      authDomain: "burrito-app-20044.firebaseapp.com",
+      projectId: "burrito-app-20044",
+      storageBucket: "burrito-app-20044.firebasestorage.app",
+      messagingSenderId: "1053426882780",
+      appId: "1:1053426882780:web:b7317e3259a2b4bbf13c2e"
+    });
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+  </script>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌯</text></svg>">
   <style>
     /* ===== CSS RESET & VARIABLES ===== */
@@ -1418,6 +1434,9 @@
           <div class="fav-card-flames">🔥🔥🔥🔥</div>
         </div>
       </div>
+      <div style="padding:24px;text-align:center;">
+        <button onclick="handleSignOut()" style="background:none;border:2px solid var(--shadow);color:var(--shadow);padding:12px 32px;border-radius:50px;font-family:var(--font-display);font-weight:700;font-size:14px;cursor:pointer;">Sign Out</button>
+      </div>
       <div style="height:100px;"></div>
     </div>
   </div>
@@ -1462,6 +1481,7 @@
       <div style="text-align:center;margin-top:16px;">
         <button onclick="document.getElementById('auth-modal').classList.remove('visible')" style="background:none;border:none;color:var(--shadow);font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-body);">Skip for now — browse as guest</button>
       </div>
+      <div id="auth-error" style="display:none;margin-top:12px;padding:12px 16px;background:#FEE;border:1px solid #E85D26;border-radius:var(--radius-xs);font-size:13px;color:#C0392B;text-align:center;"></div>
     </div>
   </div>
 
@@ -2191,22 +2211,93 @@
       });
     }
 
-    function handleSignup() {
-      const name = document.getElementById('signup-name').value || 'Burrito Fan';
-      document.getElementById('profile-display-name').textContent = name;
-      document.getElementById('profile-handle').textContent = '@' + name.toLowerCase().replace(/\s+/g, '') + '_sd';
-      completeAuth();
+    function showAuthError(msg) {
+      const el = document.getElementById('auth-error');
+      el.textContent = msg;
+      el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 5000);
     }
 
-    function handleLogin() {
-      completeAuth();
+    async function handleSignup() {
+      const name = document.getElementById('signup-name').value.trim() || 'Burrito Fan';
+      const email = document.getElementById('signup-email').value.trim();
+      const pass = document.getElementById('signup-pass').value;
+      if (!email || !pass) { showAuthError('Please fill in all fields.'); return; }
+      if (pass.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+      try {
+        const cred = await auth.createUserWithEmailAndPassword(email, pass);
+        await cred.user.updateProfile({ displayName: name });
+        await db.collection('users').doc(cred.user.uid).set({
+          displayName: name,
+          email: email,
+          handle: '@' + name.toLowerCase().replace(/[^a-z0-9]/g, '') + '_sd',
+          burritosEaten: 0,
+          reviews: 0,
+          boosts: 0,
+          favorites: 0,
+          streak: 0,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        completeAuth(cred.user);
+      } catch (err) {
+        const msg = err.code === 'auth/email-already-in-use' ? 'That email is already registered. Try logging in.'
+          : err.code === 'auth/invalid-email' ? 'Please enter a valid email address.'
+          : err.message;
+        showAuthError(msg);
+      }
     }
 
-    function completeAuth() {
+    async function handleLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const pass = document.getElementById('login-pass').value;
+      if (!email || !pass) { showAuthError('Please fill in all fields.'); return; }
+      try {
+        const cred = await auth.signInWithEmailAndPassword(email, pass);
+        completeAuth(cred.user);
+      } catch (err) {
+        const msg = err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential'
+          ? 'Invalid email or password.'
+          : err.message;
+        showAuthError(msg);
+      }
+    }
+
+    async function completeAuth(user) {
       document.getElementById('auth-modal').classList.remove('visible');
       document.getElementById('guest-profile').style.display = 'none';
       document.getElementById('loggedin-profile').style.display = 'block';
+      // Load profile from Firestore
+      try {
+        const doc = await db.collection('users').doc(user.uid).get();
+        if (doc.exists) {
+          const data = doc.data();
+          document.getElementById('profile-display-name').textContent = data.displayName || user.displayName || 'Burrito Fan';
+          document.getElementById('profile-handle').textContent = data.handle || '@burritofan';
+        } else {
+          document.getElementById('profile-display-name').textContent = user.displayName || 'Burrito Fan';
+          document.getElementById('profile-handle').textContent = '@' + (user.displayName || 'burritofan').toLowerCase().replace(/[^a-z0-9]/g, '') + '_sd';
+        }
+      } catch (e) {
+        document.getElementById('profile-display-name').textContent = user.displayName || 'Burrito Fan';
+      }
     }
+
+    function handleSignOut() {
+      auth.signOut().then(() => {
+        document.getElementById('guest-profile').style.display = 'block';
+        document.getElementById('loggedin-profile').style.display = 'none';
+      });
+    }
+
+    // Persist auth state — auto-login returning users
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        completeAuth(user);
+      } else {
+        document.getElementById('guest-profile').style.display = 'block';
+        document.getElementById('loggedin-profile').style.display = 'none';
+      }
+    });
   </script>
 </body>
 </html>
