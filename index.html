@@ -1031,20 +1031,14 @@
       transform: translateY(100%);
       transition: transform 0.42s cubic-bezier(0.32, 0.72, 0, 1);
       pointer-events: none;
+      /* Tap-through when off-screen */
     }
+    #search-results.search-open { overflow-y: auto; }
     #search-results.search-open {
       transform: translateY(0);
       pointer-events: all;
     }
-    .search-results-header {
-      padding: 52px 24px 16px;
-      background: var(--white);
-      box-shadow: 0 2px 12px rgba(123,79,46,0.07);
-      flex-shrink: 0;
-    }
-    @supports (padding: env(safe-area-inset-top)) {
-      .search-results-header { padding-top: calc(env(safe-area-inset-top) + 16px); }
-    }
+    /* search-results: no separate header — content starts below map-top */
     /* Restaurant autocomplete */
     .log-autocomplete-input {
       width: 100%;
@@ -1082,76 +1076,174 @@
     .ac-item:hover { background: rgba(212,169,106,0.12); }
     .ac-item-name { font-weight: 700; font-size: 14px; color: var(--brown); }
     .ac-item-meta { font-size: 12px; color: var(--shadow); margin-top: 2px; }
-    /* Size slider */
-    .burrito-size-range {
-      -webkit-appearance: none;
-      width: 100%;
-      height: 6px;
-      border-radius: 3px;
-      outline: none;
-      cursor: pointer;
-      margin: 8px 0 6px;
+    /* ===== SIZE SELECTOR ===== */
+    .size-selector {
+      display: flex;
+      align-items: flex-end;
+      gap: 14px;
     }
-    .burrito-size-range::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 26px; height: 26px;
-      border-radius: 50%;
+    .size-emoji-wrap {
+      width: 44px;
+      flex-shrink: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      align-self: flex-end;
+      padding-bottom: 4px;
+    }
+    .size-emoji {
+      display: inline-block;
+      transform: rotate(-90deg);
+      line-height: 1;
+      transition: font-size 0.25s ease;
+    }
+    .size-right {
+      flex: 1;
+      position: relative;
+      padding-top: 58px; /* space for bubble */
+    }
+    /* Callout bubble */
+    .size-bubble {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--brown);
+      color: white;
+      border-radius: 10px;
+      padding: 7px 13px;
+      text-align: center;
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: 0 3px 14px rgba(123,79,46,0.22);
+      transition: left 0.2s ease;
+    }
+    .size-bubble-name {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .size-bubble-desc {
+      font-size: 11px;
+      opacity: 0.8;
+      margin-top: 1px;
+    }
+    .size-bubble-tip {
+      position: absolute;
+      bottom: -7px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 8px solid var(--brown);
+    }
+    /* Track area */
+    .size-track-area {
+      position: relative;
+      height: 32px;
+      display: flex;
+      align-items: center;
+    }
+    .size-visual-track {
+      position: absolute;
+      left: 11px; right: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 4px;
+      background: rgba(176,168,154,0.3);
+      border-radius: 2px;
+      pointer-events: none;
+    }
+    .size-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 50%;
       background: var(--salsa);
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(232,93,38,0.4);
-      border: 3px solid white;
-      transition: transform 0.15s;
+      border-radius: 2px;
+      transition: width 0.2s;
     }
-    .burrito-size-range::-webkit-slider-thumb:hover { transform: scale(1.15); }
-    .burrito-size-range::-moz-range-thumb {
-      width: 26px; height: 26px;
-      border-radius: 50%;
-      background: var(--salsa);
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(232,93,38,0.4);
-      border: 3px solid white;
-    }
-    .size-ticks {
+    .size-dots {
+      position: absolute;
+      left: 0; right: 0;
+      top: 50%;
+      transform: translateY(-50%);
       display: flex;
       justify-content: space-between;
-      margin-bottom: 14px;
+      pointer-events: none;
     }
-    .size-ticks span { font-size: 10px; color: var(--shadow); font-weight: 600; }
-    .size-callout {
-      background: var(--white);
-      border: 2px solid var(--tortilla);
-      border-radius: var(--radius-sm);
-      padding: 12px 16px;
-      text-align: center;
-      transition: all 0.2s;
+    .size-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: rgba(176,168,154,0.55);
+      border: 2px solid white;
+      flex-shrink: 0;
+      transition: background 0.2s, transform 0.2s;
     }
-    .size-callout-name {
-      font-family: var(--font-display);
-      font-size: 17px;
-      font-weight: 800;
-      color: var(--brown);
+    .size-dot.active { background: var(--salsa); }
+    /* Native range — invisible track, visible thumb */
+    .size-range {
+      position: absolute;
+      left: 0; right: 0;
+      width: 100%; height: 100%;
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+      margin: 0;
+      z-index: 2;
+      outline: none;
     }
-    .size-callout-desc { font-size: 13px; color: var(--shadow); margin-top: 3px; }
-    .search-results-header .search-bar {
-      margin-bottom: 12px;
+    .size-range::-webkit-slider-runnable-track { background: transparent; height: 4px; }
+    .size-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--salsa);
+      border: 3px solid white;
+      box-shadow: 0 2px 8px rgba(232,93,38,0.45);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .size-range::-webkit-slider-thumb:hover { transform: scale(1.12); }
+    .size-range::-moz-range-track { background: transparent; height: 4px; border: none; }
+    .size-range::-moz-range-thumb {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--salsa);
+      border: 3px solid white;
+      box-shadow: 0 2px 8px rgba(232,93,38,0.45);
+      cursor: pointer;
     }
     .sort-chips {
       display: flex;
       gap: 8px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 4px;
     }
+    .sort-chips::-webkit-scrollbar { display: none; }
     .sort-chip {
-      padding: 6px 14px;
+      padding: 8px 16px;
       border-radius: 50px;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
-      background: var(--cream);
+      background: var(--white);
       color: var(--brown);
-      border: none;
+      border: 1.5px solid transparent;
       cursor: pointer;
       transition: all 0.2s;
+      white-space: nowrap;
+      box-shadow: 0 1px 8px rgba(123,79,46,0.08);
+      flex-shrink: 0;
     }
-    .sort-chip.active { background: var(--brown); color: white; }
-    .search-results-list { padding: 16px 24px; padding-bottom: 100px; }
+    .sort-chip:hover { border-color: var(--tortilla); }
+    .sort-chip.active { background: var(--salsa); color: white; border-color: var(--salsa); }
+    .search-results-list { padding: 160px 24px 100px; }
+    @supports (padding: env(safe-area-inset-top)) {
+      .search-results-list { padding-top: calc(env(safe-area-inset-top) + 120px); }
+    }
     .result-card {
       background: var(--white);
       border-radius: var(--radius);
@@ -1410,14 +1502,25 @@
     <div class="map-top">
       <div class="search-bar">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" placeholder="Search burritos..." onclick="showScreen('search-results')">
-        <div class="search-avatar" onclick="showScreen('user-profile')">🌯</div>
+        <input type="text" id="map-search-input" placeholder="Search burritos..." onclick="openSearch()" readonly>
+        <button id="search-close-btn" onclick="closeSearch()" style="display:none;background:none;border:none;cursor:pointer;color:var(--shadow);font-size:20px;padding:2px 4px;flex-shrink:0;line-height:1;">✕</button>
+        <div class="search-avatar" id="search-avatar" onclick="showScreen('user-profile')">🌯</div>
       </div>
-      <div class="filter-chips">
+      <!-- Map filter chips (shown on map view) -->
+      <div class="filter-chips" id="map-filter-chips">
         <div class="filter-chip active" data-filter="hottest" onclick="handleMapFilter(this)"><span class="chip-icon">🔥</span> Hottest</div>
         <div class="filter-chip" data-filter="biggest" onclick="handleMapFilter(this)"><span class="chip-icon">🌯</span> Biggest</div>
         <div class="filter-chip" data-filter="expert" onclick="handleMapFilter(this)"><span class="chip-icon">⭐</span> Expert Picks</div>
         <div class="filter-chip" onclick="showScreen('city-selector')"><span class="chip-icon">🏙️</span> San Diego ▾</div>
+      </div>
+      <!-- Search sort chips (shown when search is open) -->
+      <div class="filter-chips" id="search-sort-chips" style="display:none;">
+        <button class="sort-chip active">🔥 Hottest</button>
+        <button class="sort-chip">🌯 Biggest</button>
+        <button class="sort-chip">📍 Nearest</button>
+        <button class="sort-chip">💵 Price</button>
+        <button class="sort-chip">⭐ Expert</button>
+        <button class="sort-chip">📏 Size</button>
       </div>
     </div>
     <div class="bottom-sheet-overlay" id="bs-overlay" onclick="closeBottomSheet()"></div>
@@ -1486,16 +1589,35 @@
       </div>
       <div class="form-group">
         <label class="form-label">Size</label>
-        <div style="text-align:center;margin-bottom:8px;">
-          <span id="size-emoji" style="font-size:40px;transition:font-size 0.25s ease,transform 0.25s ease;display:inline-block;">🌯</span>
-        </div>
-        <input type="range" id="size-slider" class="burrito-size-range" min="0" max="4" step="1" value="2" oninput="updateSizeSlider(this.value)">
-        <div class="size-ticks">
-          <span>Baby</span><span>Regular</span><span>Big</span><span>XL</span><span>Send Help</span>
-        </div>
-        <div class="size-callout">
-          <div class="size-callout-name" id="size-callout-name">The Commitment</div>
-          <div class="size-callout-desc" id="size-callout-desc">"I skipped the gym for this"</div>
+        <div class="size-selector">
+          <!-- Sideways burrito anchored at bottom-left, grows with value -->
+          <div class="size-emoji-wrap">
+            <span id="size-emoji" class="size-emoji">🌯</span>
+          </div>
+          <!-- Slider with callout bubble -->
+          <div class="size-right">
+            <!-- Speech bubble callout, repositioned by JS -->
+            <div class="size-bubble" id="size-bubble">
+              <div class="size-bubble-name" id="size-callout-name">The Commitment</div>
+              <div class="size-bubble-desc" id="size-callout-desc">"I skipped the gym for this"</div>
+              <div class="size-bubble-tip"></div>
+            </div>
+            <!-- Track with dots and range input overlay -->
+            <div class="size-track-area" id="size-track-area">
+              <div class="size-visual-track">
+                <div class="size-fill" id="size-fill"></div>
+                <div class="size-dots">
+                  <div class="size-dot" data-v="0"></div>
+                  <div class="size-dot" data-v="1"></div>
+                  <div class="size-dot" data-v="2"></div>
+                  <div class="size-dot" data-v="3"></div>
+                  <div class="size-dot" data-v="4"></div>
+                </div>
+              </div>
+              <input type="range" id="size-slider" class="size-range" min="0" max="4" step="1" value="2"
+                oninput="updateSizeSlider(this.value)">
+            </div>
+          </div>
         </div>
       </div>
       <div class="form-group">
@@ -1726,21 +1848,6 @@
 
   <!-- ===== SEARCH RESULTS ===== -->
   <div id="search-results" class="screen">
-    <div class="search-results-header">
-      <div class="search-bar">
-        <button style="background:none;border:none;font-size:18px;cursor:pointer;" onclick="closeSearch()">←</button>
-        <input type="text" placeholder="Search burritos..." value="Burritos near me">
-        <div class="search-avatar" onclick="showScreen('user-profile')">🌯</div>
-      </div>
-      <div class="sort-chips">
-        <button class="sort-chip active">🔥 Hottest</button>
-        <button class="sort-chip">🌯 Biggest</button>
-        <button class="sort-chip">📍 Nearest</button>
-        <button class="sort-chip">💵 Price</button>
-        <button class="sort-chip">⭐ Expert</button>
-        <button class="sort-chip">📏 Size</button>
-      </div>
-    </div>
     <div class="search-results-list" id="search-results-list"></div>
   </div>
 
@@ -2116,30 +2223,17 @@
       setTimeout(fixViewportHeight, 300);
     });
 
-    // Init size slider gradient on load
-    setTimeout(() => updateSizeSlider(2), 0);
+    // Init size slider on load (after DOM is painted)
+    setTimeout(() => { if (document.getElementById('size-slider')) updateSizeSlider(2); }, 100);
 
     let currentScreen = 'splash';
 
     function showScreen(id) {
-      // Search results slides up over the map — special handling
-      if (id === 'search-results') {
-        // Make sure map is active underneath
-        if (currentScreen !== 'map-screen') {
-          document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-          const mapEl = document.getElementById('map-screen');
-          mapEl.classList.add('active');
-          currentScreen = 'map-screen';
-          setTimeout(() => initMap(), 100);
-        }
-        document.getElementById('search-results').classList.add('search-open');
-        renderSearchResults();
-        closeBottomSheet();
-        return;
-      }
+      // Search results handled via openSearch()
+      if (id === 'search-results') { openSearch(); return; }
 
-      // Close search overlay if it was open
-      document.getElementById('search-results').classList.remove('search-open');
+      // Close search if it was open
+      closeSearch();
 
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       const screen = document.getElementById(id);
@@ -2154,13 +2248,37 @@
         populateRestaurantSelector();
       }
 
-      // Update tab bar
       document.querySelectorAll('.tab-bar-item').forEach(t => t.classList.remove('active'));
+      closeBottomSheet();
+    }
+
+    function openSearch() {
+      // Ensure map is active underneath
+      if (currentScreen !== 'map-screen') {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('map-screen').classList.add('active');
+        currentScreen = 'map-screen';
+        setTimeout(() => initMap(), 100);
+      }
+      document.getElementById('search-results').classList.add('search-open');
+      document.getElementById('search-close-btn').style.display = 'flex';
+      document.getElementById('search-avatar').style.display = 'none';
+      document.getElementById('map-filter-chips').style.display = 'none';
+      document.getElementById('search-sort-chips').style.display = 'flex';
+      renderSearchResults();
       closeBottomSheet();
     }
 
     function closeSearch() {
       document.getElementById('search-results').classList.remove('search-open');
+      const closeBtn = document.getElementById('search-close-btn');
+      const avatar = document.getElementById('search-avatar');
+      const mapChips = document.getElementById('map-filter-chips');
+      const sortChips = document.getElementById('search-sort-chips');
+      if (closeBtn) closeBtn.style.display = 'none';
+      if (avatar) avatar.style.display = 'flex';
+      if (mapChips) mapChips.style.display = 'flex';
+      if (sortChips) sortChips.style.display = 'none';
     }
 
     // ===== ONBOARDING =====
@@ -2521,12 +2639,12 @@
     // filter-chip clicks handled via onclick="handleMapFilter(this)" in HTML
 
     // ===== SORT CHIP TOGGLE =====
-    document.querySelectorAll('.sort-chip').forEach(chip => {
-      chip.addEventListener('click', function() {
-        document.querySelectorAll('.sort-chip').forEach(c => c.classList.remove('active'));
-        this.classList.add('active');
-        renderSearchResults();
-      });
+    document.getElementById('search-sort-chips').addEventListener('click', function(e) {
+      const chip = e.target.closest('.sort-chip');
+      if (!chip) return;
+      document.querySelectorAll('.sort-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      renderSearchResults();
     });
 
     // ===== AUTH =====
@@ -2668,17 +2786,36 @@
     function updateSizeSlider(val) {
       const v = parseInt(val);
       const data = sizeData[v];
+
+      // Emoji size (sideways burrito grows)
       const emoji = document.getElementById('size-emoji');
-      const name = document.getElementById('size-callout-name');
-      const desc = document.getElementById('size-callout-desc');
       if (emoji) emoji.style.fontSize = data.emoji + 'px';
-      if (name) name.textContent = data.name;
-      if (desc) desc.textContent = data.desc;
-      // Update slider track fill
-      const slider = document.getElementById('size-slider');
-      if (slider) {
-        const pct = (v / 4) * 100;
-        slider.style.background = `linear-gradient(to right, var(--salsa) ${pct}%, rgba(176,168,154,0.3) ${pct}%)`;
+
+      // Callout text
+      const nameEl = document.getElementById('size-callout-name');
+      const descEl = document.getElementById('size-callout-desc');
+      if (nameEl) nameEl.textContent = data.name;
+      if (descEl) descEl.textContent = data.desc;
+
+      // Fill width
+      const fill = document.getElementById('size-fill');
+      if (fill) fill.style.width = (v / 4 * 100) + '%';
+
+      // Active dots (fill left-to-current)
+      document.querySelectorAll('.size-dot').forEach((dot, i) => {
+        dot.classList.toggle('active', i <= v);
+      });
+
+      // Position callout bubble above the thumb
+      const area = document.getElementById('size-track-area');
+      const bubble = document.getElementById('size-bubble');
+      if (area && bubble) {
+        const w = area.offsetWidth;
+        const thumbHalf = 11;
+        const leftPx = thumbHalf + (v / 4) * (w - thumbHalf * 2);
+        const halfBubble = bubble.offsetWidth / 2;
+        const clamped = Math.min(Math.max(leftPx, halfBubble + 2), w - halfBubble - 2);
+        bubble.style.left = clamped + 'px';
       }
     }
 
