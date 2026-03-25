@@ -1596,6 +1596,9 @@
         <div style="display:flex;justify-content:center;">
           <button class="btn-primary" onclick="handleLogin()" style="margin-top:8px;">Log In 🔥</button>
         </div>
+        <div style="text-align:center;margin-top:12px;">
+          <button onclick="handleForgotPassword()" style="background:none;border:none;color:var(--salsa);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);">Forgot password?</button>
+        </div>
       </div>
       <div style="text-align:center;margin-top:16px;">
         <button onclick="document.getElementById('auth-modal').classList.remove('visible')" style="background:none;border:none;color:var(--shadow);font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-body);">Skip for now — browse as guest</button>
@@ -2351,11 +2354,28 @@
       });
     }
 
-    function showAuthError(msg) {
+    function showAuthError(msg, showLoginLink) {
       const el = document.getElementById('auth-error');
-      el.textContent = msg;
+      el.innerHTML = msg + (showLoginLink ? ' <button onclick="showAuthTab(\'login\')" style="background:none;border:none;color:var(--brown);font-weight:700;cursor:pointer;font-size:13px;text-decoration:underline;">Log in instead →</button>' : '');
       el.style.display = 'block';
-      setTimeout(() => { el.style.display = 'none'; }, 5000);
+      setTimeout(() => { el.style.display = 'none'; }, 8000);
+    }
+
+    async function handleForgotPassword() {
+      const email = document.getElementById('login-email').value.trim();
+      if (!email) { showAuthError('Enter your email above first.'); return; }
+      try {
+        await auth.sendPasswordResetEmail(email);
+        const el = document.getElementById('auth-error');
+        el.style.background = '#EFfBF0';
+        el.style.border = '1px solid #6B8F47';
+        el.style.color = '#3A6B2A';
+        el.innerHTML = '✅ Reset email sent! Check your inbox.';
+        el.style.display = 'block';
+        setTimeout(() => { el.style.display = 'none'; el.style.background=''; el.style.border=''; el.style.color=''; }, 6000);
+      } catch (err) {
+        showAuthError('Could not send reset email. Check the address and try again.');
+      }
     }
 
     async function handleSignup() {
@@ -2380,10 +2400,11 @@
         });
         completeAuth(cred.user);
       } catch (err) {
-        const msg = err.code === 'auth/email-already-in-use' ? 'That email is already registered. Try logging in.'
+        const alreadyInUse = err.code === 'auth/email-already-in-use';
+        const msg = alreadyInUse ? 'That email already has an account.'
           : err.code === 'auth/invalid-email' ? 'Please enter a valid email address.'
           : err.message;
-        showAuthError(msg);
+        showAuthError(msg, alreadyInUse);
       }
     }
 
