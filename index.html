@@ -46,16 +46,21 @@
 
     html {
       height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
     }
     body {
       height: 100%;
       width: 100%;
       overflow: hidden;
+      overscroll-behavior: none;
+      /* position: fixed prevents iOS Safari elastic bounce from revealing background */
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
       font-family: var(--font-body);
       background: var(--tortilla); /* matches splash gradient bottom so any gap is invisible */
       color: var(--brown);
       -webkit-font-smoothing: antialiased;
-      position: relative;
     }
 
     /* ===== SCREEN MANAGEMENT ===== */
@@ -4069,11 +4074,12 @@
     async function loadFriendRequestsBadge(uid) {
       try {
         const snap = await db.collection('friendRequests')
-          .where('toUid','==',uid).where('status','==','pending').get();
+          .where('toUid','==',uid).get();
+        const pending = snap.docs.filter(d => d.data().status === 'pending');
         const badge = document.getElementById('friend-req-badge');
         if (!badge) return;
-        if (snap.size > 0) {
-          badge.textContent = snap.size;
+        if (pending.length > 0) {
+          badge.textContent = pending.length;
           badge.style.display = 'inline-flex';
         } else {
           badge.style.display = 'none';
@@ -4094,12 +4100,15 @@
           container.innerHTML = '<div class="empty-state" style="padding:16px 0;"><div class="empty-state-icon">🔍</div><div class="empty-state-text">No users found for "'+query+'"</div></div>';
           return;
         }
-        // Get current friends and pending requests
+        // Get current friends and pending requests.
+        // Query by single field only (no composite index needed) — filter status client-side.
         const friendsSnap = await db.collection('users').doc(currentUser.uid).collection('friends').get();
         const friendUids = new Set(friendsSnap.docs.map(d => d.id));
         const sentSnap = await db.collection('friendRequests')
-          .where('fromUid','==',currentUser.uid).where('status','==','pending').get();
-        const sentTo = new Set(sentSnap.docs.map(d => d.data().toUid));
+          .where('fromUid','==',currentUser.uid).get();
+        const sentTo = new Set(
+          sentSnap.docs.filter(d => d.data().status === 'pending').map(d => d.data().toUid)
+        );
 
         let html = '';
         snap.forEach(doc => {
@@ -4111,7 +4120,7 @@
           let btn;
           if (isFriend) btn = `<button class="btn-friend-friends">✓ Friends</button>`;
           else if (isPending) btn = `<button class="btn-friend-pending">Pending</button>`;
-          else btn = `<button class="btn-friend-add" onclick="sendFriendRequest('${uid}','${(d.displayName||'').replace(/'/g,"\\'")}')">+ Add</button>`;
+          else btn = `<button class="btn-friend-add" onclick="sendFriendRequest('${uid}','${(d.displayName||'').replace(/'/g,"\\'")}',this)">+ Add</button>`;
           html += `
             <div class="friend-card" style="cursor:default;">
               <div class="friend-avatar">🌯</div>
@@ -4129,13 +4138,22 @@
       }
     }
 
-    async function sendFriendRequest(toUid, toName) {
+    async function sendFriendRequest(toUid, toName, btnEl) {
       if (!currentUser) return;
+      // Optimistically flip the button immediately so it feels instant
+      if (btnEl) {
+        btnEl.className = 'btn-friend-pending';
+        btnEl.textContent = 'Pending';
+        btnEl.onclick = null;
+      }
       try {
-        // Check if request already exists
+        // Check if request already exists (catches double-taps or stale UI)
         const existing = await db.collection('friendRequests')
           .where('fromUid','==',currentUser.uid).where('toUid','==',toUid).limit(1).get();
-        if (!existing.empty) return;
+        if (!existing.empty) {
+          showMilestoneToast('👋','Already Sent','Your request to '+toName+' is pending.');
+          return;
+        }
         await db.collection('friendRequests').add({
           fromUid: currentUser.uid,
           fromName: currentUserData.displayName || 'Burrito Fan',
@@ -4146,8 +4164,15 @@
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         showMilestoneToast('✉️','Request Sent!','Friend request sent to '+toName);
-        searchFriends(); // refresh results
-      } catch(e) { console.error(e); }
+      } catch(e) {
+        // Roll back the button if the write failed
+        if (btnEl) {
+          btnEl.className = 'btn-friend-add';
+          btnEl.textContent = '+ Add';
+          btnEl.onclick = () => sendFriendRequest(toUid, toName, btnEl);
+        }
+        console.error(e);
+      }
     }
 
     async function acceptFriendRequest(fromUid, fromName, fromUsername, requestId) {
@@ -4186,10 +4211,12 @@
     }
 
     async function loadFriendsTab(uid) {
-      // Load pending requests
+      // Load pending requests (single-field query, no composite index needed)
       try {
-        const reqSnap = await db.collection('friendRequests')
-          .where('toUid','==',uid).where('status','==','pending').get();
+        const allToMe = await db.collection('friendRequests')
+          .where('toUid','==',uid).get();
+        const reqSnap = { docs: allToMe.docs.filter(d => d.data().status === 'pending'), empty: false };
+        reqSnap.empty = reqSnap.docs.length === 0;
         const reqSection = document.getElementById('friend-requests-section');
         const reqList = document.getElementById('friend-requests-list');
         if (reqSnap.empty) {
