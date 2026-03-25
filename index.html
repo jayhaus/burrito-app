@@ -1079,43 +1079,33 @@
     /* ===== SIZE SELECTOR ===== */
     .size-selector {
       display: flex;
-      align-items: flex-end;
-      gap: 14px;
+      flex-direction: column;
+      align-items: flex-start;
     }
-    /* ===== SIZE SELECTOR — grid layout matching sketch ===== */
-    .size-selector {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      grid-template-rows: auto auto;
-      column-gap: 14px;
-    }
-    /* Row 1 col 1: burrito emoji */
+    /* Burrito emoji — rotated horizontal, open end facing right */
     .size-emoji {
-      grid-column: 1; grid-row: 1;
       font-size: 54px;
       display: inline-block;
-      /* Rotate ~-45deg so the wrapped end faces left, filling faces right */
-      transform: rotate(-45deg);
+      /* scaleX(-1) mirrors so filling faces right; rotate(-45deg) makes it horizontal */
+      transform: scaleX(-1) rotate(-45deg);
       transform-origin: center center;
-      align-self: center;
       line-height: 1;
       transition: font-size 0.25s ease;
+      margin-bottom: 10px;
     }
-    /* Row 1 col 2: slider track */
+    /* Slider track — left-aligned, not full width */
     .size-track-area {
-      grid-column: 2; grid-row: 1;
+      width: 72%;
       position: relative;
       height: 28px;
       display: flex;
       align-items: center;
     }
-    /* Row 2 col 1: empty spacer so callout aligns to col 2 */
-    .size-spacer { grid-column: 1; grid-row: 2; }
-    /* Row 2 col 2: callout lives here, bubble is absolutely positioned inside */
+    /* Callout row below track — same width so bubble positioning matches */
     .size-callout-row {
-      grid-column: 2; grid-row: 2;
+      width: 72%;
       position: relative;
-      height: 62px;
+      height: 60px;
       margin-top: 4px;
     }
     /* Gray track line */
@@ -1501,11 +1491,11 @@
   <div id="map-screen" class="screen">
     <div id="map"></div>
     <div class="map-top">
-      <div class="search-bar">
+      <div class="search-bar" onclick="openSearch()" style="cursor:pointer;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="map-search-input" placeholder="Search burritos..." onclick="openSearch()" readonly>
-        <button id="search-close-btn" onclick="closeSearch()" style="display:none;background:none;border:none;cursor:pointer;color:var(--shadow);font-size:20px;padding:2px 4px;flex-shrink:0;line-height:1;">✕</button>
-        <div class="search-avatar" id="search-avatar" onclick="showScreen('user-profile')">🌯</div>
+        <span id="map-search-input" style="flex:1;font-size:15px;color:var(--shadow);pointer-events:none;user-select:none;">Search burritos...</span>
+        <button id="search-close-btn" onclick="event.stopPropagation();closeSearch()" style="display:none;background:none;border:none;cursor:pointer;color:var(--shadow);font-size:20px;padding:2px 4px;flex-shrink:0;line-height:1;">✕</button>
+        <div class="search-avatar" id="search-avatar" onclick="event.stopPropagation();showScreen('user-profile')">🌯</div>
       </div>
       <!-- Map filter chips (shown on map view) -->
       <div class="filter-chips" id="map-filter-chips">
@@ -1591,14 +1581,14 @@
       <div class="form-group">
         <label class="form-label">Size</label>
         <div class="size-selector">
-          <!-- Col 1 Row 1: burrito emoji, rotated to lie horizontal -->
+          <!-- Burrito emoji: horizontal, open side facing right, grows with value -->
           <span id="size-emoji" class="size-emoji">🌯</span>
-          <!-- Col 2 Row 1: slider track with dots and thumb -->
+          <!-- Slider track below the burrito, left-aligned, not full width -->
           <div class="size-track-area" id="size-track-area">
             <div class="size-visual-track">
               <div class="size-fill" id="size-fill"></div>
             </div>
-            <!-- Dots positioned by JS to align exactly with thumb steps -->
+            <!-- Dots: JS positions each so center = native thumb center for that step -->
             <div class="size-dot" data-v="0"></div>
             <div class="size-dot" data-v="1"></div>
             <div class="size-dot" data-v="2"></div>
@@ -1607,12 +1597,10 @@
             <input type="range" id="size-slider" class="size-range" min="0" max="4" step="1" value="2"
               oninput="updateSizeSlider(this.value)">
           </div>
-          <!-- Col 1 Row 2: empty spacer keeps callout in col 2 -->
-          <div class="size-spacer"></div>
-          <!-- Col 2 Row 2: callout bubble below track, arrow points up -->
+          <!-- Callout row below track (same width) — arrow always points at orange dot -->
           <div class="size-callout-row">
             <div class="size-bubble" id="size-bubble">
-              <div class="size-bubble-tip"></div>
+              <div class="size-bubble-tip" id="size-bubble-tip"></div>
               <div class="size-bubble-name" id="size-callout-name">The Commitment</div>
               <div class="size-bubble-desc" id="size-callout-desc">"I skipped the gym for this"</div>
             </div>
@@ -2784,10 +2772,10 @@
     function updateSizeSlider(val) {
       const v = parseInt(val);
       const data = sizeData[v];
-      const THUMB = 22; // thumb diameter in px
+      const THUMB = 22; // px, must match CSS thumb size
       const tHalf = THUMB / 2; // 11
 
-      // Emoji size grows with value
+      // Emoji grows with value
       const emoji = document.getElementById('size-emoji');
       if (emoji) emoji.style.fontSize = data.emoji + 'px';
 
@@ -2799,29 +2787,37 @@
       if (!area || !area.offsetWidth) return;
       const W = area.offsetWidth;
 
-      // Thumb center x for value v:
-      // Native range maps [0,4] to [tHalf, W-tHalf]
+      // Native range thumb center for value v:
+      // browser maps [min,max] → [tHalf, W-tHalf]
       const thumbCx = (v / 4) * (W - THUMB) + tHalf;
 
-      // Fill: from left edge of visual track (at x=tHalf) to thumbCx
-      // Visual track is left:tHalf, right:tHalf, width = W-THUMB
-      // Fill width as % of (W-THUMB):
+      // Orange fill width (track goes from x=tHalf to x=W-tHalf)
       const fill = document.getElementById('size-fill');
       if (fill) fill.style.width = (v / 4 * 100) + '%';
 
-      // Dots: position each dot so its center = thumbCx for value i
+      // Dots: center each dot at the exact thumb center for its step
       document.querySelectorAll('.size-dot').forEach((dot, i) => {
         dot.classList.toggle('active', i <= v);
         const cx = (i / 4) * (W - THUMB) + tHalf;
-        dot.style.left = (cx - 5) + 'px'; // 5 = dotRadius
+        dot.style.left = (cx - 5) + 'px'; // 5 = dot radius (10px dot)
       });
 
-      // Callout bubble: positioned in .size-callout-row which has same width as .size-track-area
+      // Callout bubble: clamp so it stays in bounds
       const bubble = document.getElementById('size-bubble');
+      const tip = document.getElementById('size-bubble-tip');
       if (bubble) {
-        const halfBubble = bubble.offsetWidth / 2;
-        const clamped = Math.min(Math.max(thumbCx, halfBubble + 2), W - halfBubble - 2);
-        bubble.style.left = clamped + 'px';
+        const bw = bubble.offsetWidth || 140;
+        const halfB = bw / 2;
+        const clampedLeft = Math.min(Math.max(thumbCx - halfB, 0), W - bw);
+        bubble.style.left = clampedLeft + 'px';
+        bubble.style.transform = 'none'; // override the translateX(-50%) default
+
+        // Arrow tip: always points to thumbCx regardless of bubble clamping
+        if (tip) {
+          const arrowX = thumbCx - clampedLeft; // position within bubble
+          tip.style.left = arrowX + 'px';
+          tip.style.transform = 'translateX(-50%)';
+        }
       }
     }
 
