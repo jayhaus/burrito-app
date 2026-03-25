@@ -1457,33 +1457,32 @@
         <div class="burrito-counter">
           <div class="burrito-counter-emoji">🌯</div>
           <div>
-            <div class="burrito-counter-num">127</div>
+            <div class="burrito-counter-num" id="profile-burritos-eaten">0</div>
             <div class="burrito-counter-label">Burritos Eaten</div>
           </div>
         </div>
       </div>
       <div class="user-stats-row">
         <div class="user-stat-card">
-          <div class="user-stat-val">43</div>
+          <div class="user-stat-val" id="profile-reviews">0</div>
           <div class="user-stat-label">Reviews</div>
         </div>
         <div class="user-stat-card">
-          <div class="user-stat-val">18</div>
+          <div class="user-stat-val" id="profile-boosts">0</div>
           <div class="user-stat-label">Boosts</div>
         </div>
         <div class="user-stat-card">
-          <div class="user-stat-val">12</div>
+          <div class="user-stat-val" id="profile-favorites">0</div>
           <div class="user-stat-label">Favorites</div>
         </div>
       </div>
-      <div class="user-badge-section">
-        <span class="trust-badge"><span class="badge-dot"></span> Burrito Expert (100+)</span>
-        <span class="streak-badge">🔥 14-day streak</span>
+      <div class="user-badge-section" id="profile-badge-section">
+        <span class="streak-badge" id="profile-streak" style="display:none;">🔥 0-day streak</span>
       </div>
       <div class="user-section">
         <div class="milestone-card">
           <div class="milestone-title">Next Milestone</div>
-          <div class="milestone-msg">23 burritos until Legendary (150) 🏆</div>
+          <div class="milestone-msg" id="profile-milestone">Log your first burrito to get started! 🌯</div>
           <button class="milestone-share">Share Progress</button>
         </div>
       </div>
@@ -2381,17 +2380,36 @@
       document.getElementById('auth-modal').classList.remove('visible');
       document.getElementById('guest-profile').style.display = 'none';
       document.getElementById('loggedin-profile').style.display = 'block';
-      // Load profile from Firestore
       try {
         const doc = await db.collection('users').doc(user.uid).get();
-        if (doc.exists) {
-          const data = doc.data();
-          document.getElementById('profile-display-name').textContent = data.displayName || user.displayName || 'Burrito Fan';
-          document.getElementById('profile-handle').textContent = data.handle || '@burritofan';
-        } else {
-          document.getElementById('profile-display-name').textContent = user.displayName || 'Burrito Fan';
-          document.getElementById('profile-handle').textContent = '@' + (user.displayName || 'burritofan').toLowerCase().replace(/[^a-z0-9]/g, '') + '_sd';
+        const data = doc.exists ? doc.data() : {};
+        const name = data.displayName || user.displayName || 'Burrito Fan';
+        const handle = data.handle || '@' + name.toLowerCase().replace(/[^a-z0-9]/g, '') + '_sd';
+        const eaten = data.burritosEaten || 0;
+        const reviews = data.reviews || 0;
+        const boosts = data.boosts || 0;
+        const favorites = data.favorites || 0;
+        const streak = data.streak || 0;
+
+        document.getElementById('profile-display-name').textContent = name;
+        document.getElementById('profile-handle').textContent = handle;
+        document.getElementById('profile-burritos-eaten').textContent = eaten;
+        document.getElementById('profile-reviews').textContent = reviews;
+        document.getElementById('profile-boosts').textContent = boosts;
+        document.getElementById('profile-favorites').textContent = favorites;
+
+        // Streak
+        const streakEl = document.getElementById('profile-streak');
+        if (streak > 0) { streakEl.textContent = `🔥 ${streak}-day streak`; streakEl.style.display = ''; }
+        else { streakEl.style.display = 'none'; }
+
+        // Milestone
+        const milestones = [[1,'First burrito logged!'],[10,'10 burritos — you\'re a regular 🌮'],[25,'25 burritos — getting serious 🔥'],[50,'50 burritos — Burrito Veteran 🏅'],[100,'100 burritos — Legend status 🏆'],[250,'250 burritos — you need help 🚀']];
+        let nextMsg = 'Log your first burrito to get started! 🌯';
+        for (const [n, label] of milestones) {
+          if (eaten < n) { nextMsg = `${n - eaten} burritos until: ${label}`; break; }
         }
+        document.getElementById('profile-milestone').textContent = nextMsg;
       } catch (e) {
         document.getElementById('profile-display-name').textContent = user.displayName || 'Burrito Fan';
       }
