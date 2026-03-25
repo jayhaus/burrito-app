@@ -245,6 +245,12 @@
     }
     /* Custom warm map tiles override */
     .leaflet-tile-pane { filter: sepia(0.15) saturate(0.9) brightness(1.02) hue-rotate(-5deg); }
+    .burrito-pin div { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .burrito-pin-highlight div:hover {
+      transform: rotate(-45deg) scale(1.25) !important;
+      box-shadow: 0 6px 24px rgba(232,93,38,0.75) !important;
+      z-index: 9999;
+    }
     .leaflet-control-zoom { display: none; }
     .leaflet-control-attribution { display: none; }
 
@@ -1304,10 +1310,9 @@
         <div class="search-avatar" onclick="showScreen('user-profile')">🌯</div>
       </div>
       <div class="filter-chips">
-        <div class="filter-chip active"><span class="chip-icon">🔥</span> Heat Rating</div>
-        <div class="filter-chip"><span class="chip-icon">📍</span> Distance</div>
-        <div class="filter-chip"><span class="chip-icon">💵</span> Price</div>
-        <div class="filter-chip"><span class="chip-icon">⭐</span> Expert Picks</div>
+        <div class="filter-chip active" data-filter="hottest" onclick="handleMapFilter(this)"><span class="chip-icon">🔥</span> Hottest</div>
+        <div class="filter-chip" data-filter="biggest" onclick="handleMapFilter(this)"><span class="chip-icon">🌯</span> Biggest</div>
+        <div class="filter-chip" data-filter="expert" onclick="handleMapFilter(this)"><span class="chip-icon">⭐</span> Expert Picks</div>
         <div class="filter-chip" onclick="showScreen('city-selector')"><span class="chip-icon">🏙️</span> San Diego ▾</div>
       </div>
     </div>
@@ -1541,27 +1546,9 @@
       <div class="user-section">
         <div class="user-section-title">My Burritos</div>
         <div id="my-burritos-list">
-          <!-- Populated dynamically from Firestore -->
-          <div class="burrito-log-card">
-            <div class="burrito-log-emoji">🌯</div>
-            <div class="burrito-log-info">
-              <div class="burrito-log-name">Carne Asada · Lucha Libre Taco Shop</div>
-              <div class="burrito-log-meta">The Commitment 🏋️ · 🔥🔥🔥🔥🔥 · 2 days ago</div>
-            </div>
-          </div>
-          <div class="burrito-log-card">
-            <div class="burrito-log-emoji">🌯</div>
-            <div class="burrito-log-info">
-              <div class="burrito-log-name">Breakfast · Lolita's Mexican Food</div>
-              <div class="burrito-log-meta">The Regret 🦕 · 🔥🔥🔥🔥 · 5 days ago</div>
-            </div>
-          </div>
-          <div class="burrito-log-card">
-            <div class="burrito-log-emoji">🌯</div>
-            <div class="burrito-log-info">
-              <div class="burrito-log-name">Carnitas · El Zarape</div>
-              <div class="burrito-log-meta">The Regular 🌮 · 🔥🔥🔥🔥 · 1 week ago</div>
-            </div>
+          <div id="burritos-empty" style="text-align:center;padding:24px 0;color:var(--shadow);font-size:14px;">
+            <div style="font-size:36px;margin-bottom:8px;">🌯</div>
+            No burritos logged yet. Start eating!
           </div>
         </div>
         <button onclick="showScreen('write-review')" style="width:100%;margin-top:12px;padding:14px;border:2px dashed var(--tortilla);border-radius:var(--radius);background:none;font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--tortilla);cursor:pointer;">+ Log Another Burrito</button>
@@ -1633,7 +1620,8 @@
         <div class="search-avatar" onclick="showScreen('user-profile')">🌯</div>
       </div>
       <div class="sort-chips">
-        <button class="sort-chip active">🔥 Top Rated</button>
+        <button class="sort-chip active">🔥 Hottest</button>
+        <button class="sort-chip">🌯 Biggest</button>
         <button class="sort-chip">📍 Nearest</button>
         <button class="sort-chip">💵 Price</button>
         <button class="sort-chip">⭐ Expert</button>
@@ -1710,7 +1698,7 @@
         lat: 32.7522, lng: -117.1720,
         rating: 4.8, flames: 5,
         reviews: 312, boosts: 47,
-        expert: true,
+        expert: true, bigPortion: true,
         category: "Mexican · Mission Hills",
         distance: "0.3 mi",
         price: "$",
@@ -1727,7 +1715,7 @@
         lat: 32.7945, lng: -117.1580,
         rating: 4.5, flames: 4,
         reviews: 245, boosts: 31,
-        expert: true,
+        expert: true, bigPortion: true,
         category: "Mexican · Kearny Mesa",
         distance: "2.1 mi",
         price: "$",
@@ -1743,7 +1731,7 @@
         lat: 32.7098, lng: -117.1565,
         rating: 4.3, flames: 4,
         reviews: 189, boosts: 22,
-        expert: false,
+        expert: false, bigPortion: true,
         category: "Street Tacos & Burritos · Chula Vista",
         distance: "4.2 mi",
         price: "$",
@@ -1790,7 +1778,7 @@
         lat: 32.7797, lng: -117.1265,
         rating: 3.8, flames: 4,
         reviews: 98, boosts: 8,
-        expert: false,
+        expert: false, bigPortion: true,
         category: "Mexican · North Park",
         distance: "1.6 mi",
         price: "$",
@@ -1835,7 +1823,7 @@
         lat: 32.8156, lng: -117.1430,
         rating: 4.6, flames: 5,
         reviews: 278, boosts: 41,
-        expert: true,
+        expert: true, bigPortion: true,
         category: "Mexican · Hillcrest",
         distance: "2.5 mi",
         price: "$",
@@ -1851,7 +1839,7 @@
         lat: 32.7244, lng: -117.1024,
         rating: 4.1, flames: 4,
         reviews: 112, boosts: 14,
-        expert: false,
+        expert: false, bigPortion: true,
         category: "Mexican · National City",
         distance: "5.1 mi",
         price: "$",
@@ -1881,7 +1869,7 @@
         lat: 32.7890, lng: -117.1090,
         rating: 3.9, flames: 4,
         reviews: 91, boosts: 9,
-        expert: false,
+        expert: false, bigPortion: true,
         category: "Mexican · City Heights",
         distance: "3.0 mi",
         price: "$",
@@ -1896,7 +1884,7 @@
         lat: 32.7465, lng: -117.1335,
         rating: 4.4, flames: 4,
         reviews: 198, boosts: 28,
-        expert: true,
+        expert: true, bigPortion: true,
         category: "Mexican · South Park",
         distance: "1.2 mi",
         price: "$",
@@ -1991,7 +1979,7 @@
         lat: 32.7185, lng: -117.1585,
         rating: 3.9, flames: 4,
         reviews: 105, boosts: 11,
-        expert: false,
+        expert: false, bigPortion: true,
         category: "Mexican · East Village",
         distance: "0.5 mi",
         price: "$",
@@ -2098,31 +2086,13 @@
       setTimeout(() => map.invalidateSize(), 200);
 
       // Add burrito pins
+      mapMarkers.length = 0;
       restaurants.forEach(r => {
-        const size = mapPinSize(r.rating);
-        const icon = L.divIcon({
-          className: 'burrito-pin',
-          html: `<div style="
-            width: ${size}px;
-            height: ${size}px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: ${size * 0.55}px;
-            background: ${r.expert ? 'linear-gradient(135deg, #E85D26, #FF7A45)' : 'linear-gradient(135deg, #7B4F2E, #A06B3E)'};
-            border-radius: 50% 50% 50% 4px;
-            transform: rotate(-45deg);
-            box-shadow: 0 2px ${size/4}px rgba(123,79,46,0.35);
-            border: 2.5px solid white;
-            cursor: pointer;
-          "><span style="transform: rotate(45deg);">🌯</span></div>`,
-          iconSize: [size, size],
-          iconAnchor: [size / 2, size],
-        });
-
-        const marker = L.marker([r.lat, r.lng], { icon }).addTo(map);
+        const marker = L.marker([r.lat, r.lng], { icon: buildPinIcon(r, false) }).addTo(map);
         marker.on('click', () => openBottomSheet(r));
+        mapMarkers.push({ marker, r });
       });
+      applyMapFilter(activeMapFilter);
 
       // User location marker — hungry face
       const userIcon = L.divIcon({
@@ -2163,6 +2133,7 @@
             if (userMarker) {
               userMarker.setLatLng([latitude, longitude]);
             }
+            updateAllDistances();
             // Pan to user on first fix
             if (!window._geoFixed) {
               window._geoFixed = true;
@@ -2183,8 +2154,68 @@
     }
 
     function mapPinSize(rating) {
-      // Scale from 32px (rating 1) to 56px (rating 5)
       return Math.round(32 + (rating / 5) * 24);
+    }
+
+    // ===== DISTANCE =====
+    function calcDistanceMi(lat1, lng1, lat2, lng2) {
+      const R = 3958.8;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    function updateAllDistances() {
+      if (!userLocation.lat || !userLocation.lng) return;
+      restaurants.forEach(r => {
+        const miles = calcDistanceMi(userLocation.lat, userLocation.lng, r.lat, r.lng);
+        r.distance = miles < 0.1 ? 'Here!' : miles.toFixed(1) + ' mi';
+      });
+    }
+
+    // ===== MAP FILTER / PINS =====
+    const mapMarkers = [];
+    let activeMapFilter = 'hottest';
+
+    function matchesFilter(r, filter) {
+      if (filter === 'hottest') return r.flames >= 5;
+      if (filter === 'biggest') return !!r.bigPortion;
+      if (filter === 'expert') return !!r.expert;
+      return true;
+    }
+
+    function buildPinIcon(r, dimmed) {
+      const size = mapPinSize(r.rating);
+      if (dimmed) {
+        return L.divIcon({
+          className: 'burrito-pin',
+          html: `<div style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;font-size:${size*0.55}px;background:#C0B8B0;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);opacity:0.35;border:2px solid white;cursor:pointer;"><span style="transform:rotate(45deg)">🌯</span></div>`,
+          iconSize: [size, size],
+          iconAnchor: [size/2, size],
+        });
+      }
+      return L.divIcon({
+        className: 'burrito-pin burrito-pin-highlight',
+        html: `<div style="width:${size+6}px;height:${size+6}px;display:flex;align-items:center;justify-content:center;font-size:${(size+6)*0.55}px;background:${r.expert ? 'linear-gradient(135deg,#E85D26,#FF7A45)' : 'linear-gradient(135deg,#E85D26,#FF7A45)'};border-radius:50% 50% 50% 4px;transform:rotate(-45deg);box-shadow:0 3px 12px rgba(232,93,38,0.55);border:2.5px solid white;cursor:pointer;"><span style="transform:rotate(45deg)">🌯</span></div>`,
+        iconSize: [size+6, size+6],
+        iconAnchor: [(size+6)/2, size+6],
+      });
+    }
+
+    function applyMapFilter(filter) {
+      activeMapFilter = filter;
+      mapMarkers.forEach(({ marker, r }) => {
+        const matches = matchesFilter(r, filter);
+        marker.setIcon(buildPinIcon(r, !matches));
+        marker.setZIndexOffset(matches ? 100 : 0);
+      });
+    }
+
+    function handleMapFilter(el) {
+      document.querySelectorAll('.filter-chip[data-filter]').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      applyMapFilter(el.dataset.filter);
     }
 
     // ===== BOTTOM SHEET =====
@@ -2291,23 +2322,20 @@
     }
 
     // ===== SEARCH RESULTS =====
-    function getDistanceDeg(r) {
-      if (!userLocation.lat) return 9999;
-      return Math.hypot(r.lat - userLocation.lat, r.lng - userLocation.lng);
-    }
-
     function renderSearchResults() {
       const activeChip = document.querySelector('.sort-chip.active');
       const sortText = activeChip ? activeChip.textContent : '';
       let sorted = [...restaurants];
       if (sortText.includes('Nearest')) {
-        sorted.sort((a, b) => getDistanceDeg(a) - getDistanceDeg(b));
+        sorted.sort((a, b) => calcDistanceMi(userLocation.lat||32.7157, userLocation.lng||-117.1611, a.lat, a.lng) - calcDistanceMi(userLocation.lat||32.7157, userLocation.lng||-117.1611, b.lat, b.lng));
       } else if (sortText.includes('Price')) {
         sorted.sort((a, b) => (a.price || '$').length - (b.price || '$').length);
       } else if (sortText.includes('Expert')) {
         sorted = sorted.filter(r => r.expert);
+      } else if (sortText.includes('Biggest')) {
+        sorted = sorted.filter(r => r.bigPortion);
       } else {
-        // Top Rated (default)
+        // Hottest (default)
         sorted.sort((a, b) => b.rating - a.rating);
       }
       document.getElementById('search-results-list').innerHTML = sorted.map(r => `
@@ -2351,14 +2379,7 @@
       });
     });
 
-    // ===== FILTER CHIP TOGGLE =====
-    document.querySelectorAll('.filter-chip').forEach(chip => {
-      chip.addEventListener('click', function() {
-        if (this.textContent.includes('San Diego')) return;
-        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-        this.classList.add('active');
-      });
-    });
+    // filter-chip clicks handled via onclick="handleMapFilter(this)" in HTML
 
     // ===== SORT CHIP TOGGLE =====
     document.querySelectorAll('.sort-chip').forEach(chip => {
@@ -2561,6 +2582,9 @@
           <div class="burrito-log-name">${type} · ${restaurant.name}</div>
           <div class="burrito-log-meta">${size} · ${flames} · ${date}</div>
         </div>`;
+      // Hide empty state
+      const emptyEl = document.getElementById('burritos-empty');
+      if (emptyEl) emptyEl.style.display = 'none';
       list.insertBefore(card, list.firstChild);
 
       // Update burrito counter
