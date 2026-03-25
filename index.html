@@ -3398,10 +3398,19 @@
       const username = rawUsername.toLowerCase().replace(/[^a-z0-9_]/g, '') || name.toLowerCase().replace(/[^a-z0-9]/g, '') + '_sd';
       if (username.length < 3) { showAuthError('Username must be at least 3 characters (letters, numbers, underscores).'); return; }
       try {
-        // Check username uniqueness
-        const uSnap = await db.collection('users').where('username','==',username).limit(1).get();
-        if (!uSnap.empty) { showAuthError('That username is taken. Try another.'); return; }
+        // Create auth account first — this authenticates the user so Firestore
+        // rules (which require auth) apply to all subsequent reads/writes.
         const cred = await auth.createUserWithEmailAndPassword(email, pass);
+
+        // Now check username uniqueness (we're authenticated, so the read is allowed)
+        const uSnap = await db.collection('users').where('username','==',username).limit(1).get();
+        if (!uSnap.empty) {
+          // Username taken — roll back the auth account and bail
+          await cred.user.delete();
+          showAuthError('That username is taken. Try another.');
+          return;
+        }
+
         await cred.user.updateProfile({ displayName: name });
         await db.collection('users').doc(cred.user.uid).set({
           displayName: name,
