@@ -1478,9 +1478,12 @@
   <div id="map-screen" class="screen">
     <div id="map"></div>
     <div class="map-top">
-      <div class="search-bar" onclick="openSearch()" style="cursor:pointer;">
+      <div class="search-bar">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <span id="map-search-input" style="flex:1;font-size:15px;color:var(--shadow);pointer-events:none;user-select:none;">Search burritos...</span>
+        <input type="text" id="map-search-input" placeholder="Search burritos..."
+          readonly style="cursor:pointer;"
+          onclick="openSearch()"
+          oninput="renderSearchResults()">
         <button id="search-close-btn" onclick="event.stopPropagation();closeSearch()" style="display:none;background:none;border:none;cursor:pointer;color:var(--shadow);font-size:20px;padding:2px 4px;flex-shrink:0;line-height:1;">✕</button>
         <div class="search-avatar" id="search-avatar" onclick="event.stopPropagation();showScreen('user-profile')">🌯</div>
       </div>
@@ -2241,12 +2244,22 @@
       document.getElementById('search-avatar').style.display = 'none';
       document.getElementById('map-filter-chips').style.display = 'none';
       document.getElementById('search-sort-chips').style.display = 'flex';
+      // Make input editable and focus it so keyboard appears
+      const inp = document.getElementById('map-search-input');
+      inp.removeAttribute('readonly');
+      inp.style.cursor = 'text';
+      setTimeout(() => inp.focus(), 50);
       renderSearchResults();
       closeBottomSheet();
     }
 
     function closeSearch() {
       document.getElementById('search-results').classList.remove('search-open');
+      const inp = document.getElementById('map-search-input');
+      inp.setAttribute('readonly', '');
+      inp.style.cursor = 'pointer';
+      inp.value = '';
+      inp.blur();
       const closeBtn = document.getElementById('search-close-btn');
       const avatar = document.getElementById('search-avatar');
       const mapChips = document.getElementById('map-filter-chips');
@@ -2536,7 +2549,7 @@
         <div class="profile-section-title">Reviews</div>
         ${reviewsHTML}
         <div class="profile-cta-row">
-          <button class="btn-primary" onclick="showScreen('write-review')">Write Review</button>
+          <button class="btn-primary" onclick="showScreen('write-review')">Log Burrito 🌯</button>
           <button class="btn-outline">Get Directions</button>
         </div>
       `;
@@ -2556,7 +2569,10 @@
     function renderSearchResults() {
       const activeChip = document.querySelector('.sort-chip.active');
       const sortText = activeChip ? activeChip.textContent : '';
-      let sorted = [...restaurants];
+      const query = (document.getElementById('map-search-input')?.value || '').toLowerCase().trim();
+      let sorted = query
+        ? restaurants.filter(r => r.name.toLowerCase().includes(query) || r.category.toLowerCase().includes(query))
+        : [...restaurants];
       if (sortText.includes('Nearest')) {
         sorted.sort((a, b) => calcDistanceMi(userLocation.lat||32.7157, userLocation.lng||-117.1611, a.lat, a.lng) - calcDistanceMi(userLocation.lat||32.7157, userLocation.lng||-117.1611, b.lat, b.lng));
       } else if (sortText.includes('Price')) {
