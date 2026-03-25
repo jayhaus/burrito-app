@@ -1634,6 +1634,76 @@
       transition: all 0.2s;
     }
     .lb-tab.active { background: var(--salsa); color: white; }
+    /* ===== LEADERBOARD PODIUM ===== */
+    .lb-podium {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 4px 0;
+      margin-bottom: 20px;
+    }
+    .lb-podium-slot {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+    }
+    .lb-podium-slot.no-tap { cursor: default; }
+    .lb-podium-crown {
+      font-size: 18px;
+      margin-bottom: 2px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .lb-podium-avatar {
+      width: 54px; height: 54px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      margin-bottom: 6px;
+      border: 3px solid transparent;
+      box-sizing: border-box;
+    }
+    .lb-podium-slot.p1 .lb-podium-avatar { background: linear-gradient(135deg,#FFF3CC,#FFE080); border-color: #FFB800; box-shadow: 0 4px 16px rgba(255,184,0,0.35); }
+    .lb-podium-slot.p2 .lb-podium-avatar { background: linear-gradient(135deg,#F0F0F0,#D8D8D8); border-color: #B0B0B0; box-shadow: 0 3px 10px rgba(0,0,0,0.10); }
+    .lb-podium-slot.p3 .lb-podium-avatar { background: linear-gradient(135deg,#F5E0CC,#E8B880); border-color: #CD7F32; box-shadow: 0 3px 10px rgba(205,127,50,0.20); }
+    .lb-podium-slot.you-pod .lb-podium-avatar { box-shadow: 0 0 0 3px var(--salsa), 0 4px 16px rgba(232,93,38,0.3); }
+    .lb-podium-name {
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--brown);
+      text-align: center;
+      width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 2px;
+      margin-bottom: 3px;
+    }
+    .lb-podium-score {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--salsa);
+      margin-bottom: 8px;
+    }
+    .lb-podium-block {
+      width: 100%;
+      border-radius: 10px 10px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .lb-podium-slot.p1 .lb-podium-block { height: 76px; background: linear-gradient(180deg,#FFD700,#FFA800); }
+    .lb-podium-slot.p2 .lb-podium-block { height: 56px; background: linear-gradient(180deg,#C8C8C8,#A0A0A0); }
+    .lb-podium-slot.p3 .lb-podium-block { height: 44px; background: linear-gradient(180deg,#D4935A,#B07040); }
+    /* ===== LEADERBOARD LIST (4th+) ===== */
     .lb-row {
       display: flex;
       align-items: center;
@@ -1644,10 +1714,7 @@
       margin-bottom: 8px;
     }
     .lb-row.lb-you { border: 2px solid var(--salsa); }
-    .lb-rank { font-family: var(--font-display); font-size: 18px; font-weight: 900; color: var(--shadow); width: 28px; text-align: center; flex-shrink: 0; }
-    .lb-rank.r1 { color: #FFB800; }
-    .lb-rank.r2 { color: #C0C0C0; }
-    .lb-rank.r3 { color: #CD7F32; }
+    .lb-rank { font-family: var(--font-display); font-size: 16px; font-weight: 900; color: var(--shadow); width: 28px; text-align: center; flex-shrink: 0; }
     .lb-info { flex: 1; }
     .lb-name { font-weight: 700; font-size: 14px; color: var(--brown); }
     .lb-sub { font-size: 12px; color: var(--shadow); margin-top: 2px; }
@@ -4356,34 +4423,55 @@
       const container = document.getElementById('leaderboard-list');
       container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">Loading...</div></div>';
       try {
-        const field = type === 'spots' ? 'uniqueSpots' : 'burritosEaten';
         const label = type === 'spots' ? 'spots' : '🌯';
-        let snap;
-        if (type === 'spots') {
-          // uniqueSpots is an array — can't order by array length in Firestore directly
-          // Fallback: fetch top 50 by burritosEaten and sort by spots client-side
-          snap = await db.collection('users').orderBy('burritosEaten','desc').limit(50).get();
-        } else {
-          snap = await db.collection('users').orderBy('burritosEaten','desc').limit(50).get();
-        }
+        const snap = await db.collection('users').orderBy('burritosEaten','desc').limit(50).get();
         if (snap.empty) { container.innerHTML = '<div class="empty-state"><div class="empty-state-text">No data yet.</div></div>'; return; }
+
         let rows = [];
         snap.forEach(doc => {
           const d = doc.data();
-          rows.push({ uid: doc.id, name: d.displayName||'Unknown', username: d.username||'', eaten: d.burritosEaten||0, spots: (d.uniqueSpots||[]).length, streak: d.streak||0 });
+          rows.push({ uid: doc.id, name: d.displayName||'Unknown', username: d.username||'', avatar: d.avatar||'🌯', eaten: d.burritosEaten||0, spots: (d.uniqueSpots||[]).length, streak: d.streak||0 });
         });
         if (type === 'spots') rows.sort((a,b) => b.spots - a.spots);
+
         const myUid = currentUser ? currentUser.uid : null;
-        let html = '';
-        rows.slice(0,20).forEach((row,i) => {
-          const rank = i+1;
-          const rankCls = rank===1?'r1':rank===2?'r2':rank===3?'r3':'';
-          const rankLabel = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
-          const score = type === 'spots' ? row.spots : row.eaten;
+        const scoreOf = r => type === 'spots' ? r.spots : r.eaten;
+
+        // ── PODIUM (top 3) ──────────────────────────────────────────────
+        // Visual order: 2nd (left) · 1st (centre) · 3rd (right)
+        const podiumDefs = [
+          { rank: 2, pos: 'p2', crown: '🥈', data: rows[1] },
+          { rank: 1, pos: 'p1', crown: '👑', data: rows[0] },
+          { rank: 3, pos: 'p3', crown: '🥉', data: rows[2] },
+        ];
+
+        let podiumHtml = '<div class="lb-podium">';
+        podiumDefs.forEach(({ pos, crown, data }) => {
+          if (!data) { podiumHtml += `<div class="lb-podium-slot ${pos}"></div>`; return; }
+          const isYou = data.uid === myUid;
+          const score = scoreOf(data);
+          const tap = !isYou ? `onclick="openFriendProfile('${data.uid}')"` : '';
+          podiumHtml += `
+            <div class="lb-podium-slot ${pos}${isYou?' you-pod':''} ${!isYou?'':'no-tap'}" ${tap}>
+              <div class="lb-podium-crown">${pos === 'p1' ? crown : ''}</div>
+              <div class="lb-podium-avatar">${data.avatar}</div>
+              <div class="lb-podium-name">${data.name}${isYou?' ★':''}</div>
+              <div class="lb-podium-score">${score} ${label}</div>
+              <div class="lb-podium-block">${pos !== 'p1' ? crown : ''}</div>
+            </div>`;
+        });
+        podiumHtml += '</div>';
+
+        // ── LIST (4th and below) ────────────────────────────────────────
+        let listHtml = '';
+        rows.slice(3, 20).forEach((row, i) => {
+          const rank = i + 4;
+          const score = scoreOf(row);
           const isYou = row.uid === myUid;
-          html += `
-            <div class="lb-row${isYou?' lb-you':''}" onclick="row.uid!=='${myUid}'&&openFriendProfile('${row.uid}')">
-              <div class="lb-rank ${rankCls}">${rankLabel}</div>
+          const tap = !isYou ? `onclick="openFriendProfile('${row.uid}')"` : '';
+          listHtml += `
+            <div class="lb-row${isYou?' lb-you':''}" ${tap} style="${!isYou?'cursor:pointer;':''}">
+              <div class="lb-rank">${rank}</div>
               <div class="lb-info">
                 <div class="lb-name">${row.name}${isYou?' <span style="color:var(--salsa);font-size:11px;">(You)</span>':''}</div>
                 <div class="lb-sub">@${row.username} · ${row.streak}wk streak</div>
@@ -4394,7 +4482,8 @@
               </div>
             </div>`;
         });
-        container.innerHTML = html;
+
+        container.innerHTML = podiumHtml + listHtml;
       } catch(e) { console.error('leaderboard error:', e); container.innerHTML = '<div style="color:var(--salsa);font-size:13px;padding:16px 0;">Could not load leaderboard.</div>'; }
     }
 
