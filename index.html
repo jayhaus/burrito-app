@@ -1082,36 +1082,34 @@
       flex-direction: column;
       align-items: flex-start;
     }
-    /* Burrito emoji — rotated horizontal, open end facing right */
+    /* Burrito emoji — horizontal, open end right, grows dramatically */
     .size-emoji {
-      font-size: 54px;
       display: inline-block;
-      /* scaleX(-1) mirrors so filling faces right; rotate(-45deg) makes it horizontal */
       transform: scaleX(-1) rotate(-45deg);
       transform-origin: center center;
       line-height: 1;
-      transition: font-size 0.25s ease;
-      margin-bottom: 10px;
+      transition: font-size 0.22s ease;
+      margin-bottom: 8px;
     }
-    /* Slider track — left-aligned, not full width */
+    /* Slider track — compact, 65% width, left-aligned */
     .size-track-area {
-      width: 72%;
+      width: 65%;
       position: relative;
-      height: 28px;
+      height: 22px;
       display: flex;
       align-items: center;
     }
-    /* Callout row below track — same width so bubble positioning matches */
+    /* Callout row — same width as track, below it */
     .size-callout-row {
-      width: 72%;
+      width: 65%;
       position: relative;
-      height: 60px;
-      margin-top: 4px;
+      height: 54px;
+      margin-top: 6px;
     }
-    /* Gray track line */
+    /* Gray track line — inset by THUMB_R (10px) to match step positions */
     .size-visual-track {
       position: absolute;
-      left: 11px; right: 11px;
+      left: 10px; right: 10px;
       top: 50%; transform: translateY(-50%);
       height: 3px;
       background: rgba(176,168,154,0.35);
@@ -1122,24 +1120,37 @@
       position: absolute;
       left: 0; top: 0; bottom: 0;
       width: 50%;
-      background: var(--salsa);
+      background: rgba(232,93,38,0.3);
       border-radius: 2px;
-      transition: width 0.2s;
+      transition: width 0.12s;
     }
-    /* Gray dots — absolutely positioned via JS so they align with thumb exactly */
+    /* Gray step dots — JS-positioned to match exact thumb steps */
     .size-dot {
       position: absolute;
-      width: 10px; height: 10px;
+      width: 9px; height: 9px;
       border-radius: 50%;
       background: rgba(176,168,154,0.55);
       border: 2px solid white;
       top: 50%; transform: translateY(-50%);
       pointer-events: none;
-      transition: background 0.2s;
+      transition: background 0.15s;
       z-index: 1;
     }
-    .size-dot.active { background: var(--salsa); }
-    /* Native range input — transparent track, orange thumb on top */
+    .size-dot.active { background: rgba(232,93,38,0.45); }
+    /* Custom orange thumb — JS-positioned, guaranteed pixel-perfect */
+    .size-custom-thumb {
+      position: absolute;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--salsa);
+      border: 3px solid white;
+      box-shadow: 0 2px 8px rgba(232,93,38,0.5);
+      top: 50%; transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 3;
+      transition: left 0.1s;
+    }
+    /* Native range — fully invisible but handles all drag interaction */
     .size-range {
       position: absolute;
       left: 0; right: 0;
@@ -1148,64 +1159,40 @@
       appearance: none;
       background: transparent;
       cursor: pointer;
-      margin: 0;
-      z-index: 2;
+      margin: 0; padding: 0;
+      z-index: 4;
       outline: none;
+      opacity: 0; /* hide completely — custom thumb handles visuals */
     }
-    .size-range::-webkit-slider-runnable-track { background: transparent; height: 3px; }
-    .size-range::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      background: var(--salsa);
-      border: 3px solid white;
-      box-shadow: 0 2px 8px rgba(232,93,38,0.45);
-      cursor: pointer;
-      transition: transform 0.1s;
-    }
-    .size-range::-webkit-slider-thumb:hover { transform: scale(1.12); }
-    .size-range::-moz-range-track { background: transparent; height: 3px; border: none; }
-    .size-range::-moz-range-thumb {
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      background: var(--salsa);
-      border: 3px solid white;
-      box-shadow: 0 2px 8px rgba(232,93,38,0.45);
-      cursor: pointer;
-    }
-    /* Callout bubble — below the track, arrow points UP to the dot */
+    /* Callout bubble below track, arrow points UP */
     .size-bubble {
       position: absolute;
-      top: 10px;
-      left: 50%; /* repositioned by JS */
-      transform: translateX(-50%);
+      top: 8px;
+      left: 0;
       background: var(--brown);
       color: white;
       border-radius: 10px;
-      padding: 8px 14px;
-      text-align: center;
+      padding: 7px 12px;
       pointer-events: none;
       white-space: nowrap;
-      box-shadow: 0 3px 14px rgba(123,79,46,0.22);
-      transition: left 0.2s ease;
+      box-shadow: 0 3px 12px rgba(123,79,46,0.2);
+      transition: left 0.12s ease;
     }
-    /* Arrow tip pointing UP (border-bottom trick) */
     .size-bubble-tip {
       position: absolute;
-      top: -8px;
+      top: -7px;
       left: 50%;
-      transform: translateX(-50%);
       width: 0; height: 0;
-      border-left: 8px solid transparent;
-      border-right: 8px solid transparent;
-      border-bottom: 9px solid var(--brown);
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-bottom: 8px solid var(--brown);
     }
     .size-bubble-name {
       font-family: var(--font-display);
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 800;
     }
-    .size-bubble-desc { font-size: 11px; opacity: 0.8; margin-top: 1px; }
+    .size-bubble-desc { font-size: 10px; opacity: 0.8; margin-top: 1px; }
     .sort-chips {
       display: flex;
       gap: 8px;
@@ -1588,12 +1575,15 @@
             <div class="size-visual-track">
               <div class="size-fill" id="size-fill"></div>
             </div>
-            <!-- Dots: JS positions each so center = native thumb center for that step -->
+            <!-- Gray step dots — JS-positioned -->
             <div class="size-dot" data-v="0"></div>
             <div class="size-dot" data-v="1"></div>
             <div class="size-dot" data-v="2"></div>
             <div class="size-dot" data-v="3"></div>
             <div class="size-dot" data-v="4"></div>
+            <!-- Custom orange thumb — pixel-perfect via JS -->
+            <div class="size-custom-thumb" id="size-custom-thumb"></div>
+            <!-- Native range: invisible, handles drag interaction -->
             <input type="range" id="size-slider" class="size-range" min="0" max="4" step="1" value="2"
               oninput="updateSizeSlider(this.value)">
           </div>
@@ -2762,18 +2752,19 @@
 
     // ===== LOG BURRITO =====
     const sizeData = [
-      { name: 'The Baby Wrap', desc: '"Just a snack, I said"', emoji: 34 },
+      { name: 'The Baby Wrap', desc: '"Just a snack, I said"', emoji: 28 },
       { name: 'The Regular', desc: '"Classic. No shame."', emoji: 44 },
-      { name: 'The Commitment', desc: '"I skipped the gym for this"', emoji: 56 },
-      { name: 'The XL Decision', desc: '"Tomorrow is a new day"', emoji: 70 },
-      { name: 'Send Help', desc: '"This burrito has a burrito inside"', emoji: 86 },
+      { name: 'The Commitment', desc: '"I skipped the gym for this"', emoji: 62 },
+      { name: 'The XL Decision', desc: '"Tomorrow is a new day"', emoji: 82 },
+      { name: 'Send Help', desc: '"This burrito has a burrito inside"', emoji: 106 },
     ];
 
     function updateSizeSlider(val) {
       const v = parseInt(val);
       const data = sizeData[v];
-      const THUMB = 22; // px, must match CSS thumb size
-      const tHalf = THUMB / 2; // 11
+      // Dot/thumb radius used for spacing calculations
+      const DOT_R = 4.5; // half of 9px dot
+      const THUMB_R = 10; // half of 20px custom thumb
 
       // Emoji grows with value
       const emoji = document.getElementById('size-emoji');
@@ -2787,35 +2778,38 @@
       if (!area || !area.offsetWidth) return;
       const W = area.offsetWidth;
 
-      // Native range thumb center for value v:
-      // browser maps [min,max] → [tHalf, W-tHalf]
-      const thumbCx = (v / 4) * (W - THUMB) + tHalf;
+      // Step positions: evenly spaced, inset by THUMB_R so thumb stays on track
+      // cx(i) = THUMB_R + (i/4) * (W - 2*THUMB_R)
+      const stepX = (i) => THUMB_R + (i / 4) * (W - 2 * THUMB_R);
+      const thumbCx = stepX(v);
 
-      // Orange fill width (track goes from x=tHalf to x=W-tHalf)
+      // Fill: left edge of track (THUMB_R) to thumbCx
       const fill = document.getElementById('size-fill');
-      if (fill) fill.style.width = (v / 4 * 100) + '%';
+      if (fill) {
+        const trackW = W - 2 * THUMB_R;
+        fill.style.width = ((thumbCx - THUMB_R) / trackW * 100) + '%';
+      }
 
-      // Dots: center each dot at the exact thumb center for its step
+      // Dots: centered at same stepX positions — guaranteed aligned with thumb
       document.querySelectorAll('.size-dot').forEach((dot, i) => {
         dot.classList.toggle('active', i <= v);
-        const cx = (i / 4) * (W - THUMB) + tHalf;
-        dot.style.left = (cx - 5) + 'px'; // 5 = dot radius (10px dot)
+        dot.style.left = (stepX(i) - DOT_R) + 'px';
       });
 
-      // Callout bubble: clamp so it stays in bounds
+      // Custom orange thumb: center at thumbCx (transform: translate(-50%,-50%) handles the offset)
+      const customThumb = document.getElementById('size-custom-thumb');
+      if (customThumb) customThumb.style.left = thumbCx + 'px';
+
+      // Callout bubble: clamped within track area, arrow tip always points at thumbCx
       const bubble = document.getElementById('size-bubble');
       const tip = document.getElementById('size-bubble-tip');
       if (bubble) {
-        const bw = bubble.offsetWidth || 140;
-        const halfB = bw / 2;
-        const clampedLeft = Math.min(Math.max(thumbCx - halfB, 0), W - bw);
+        const bw = bubble.offsetWidth || 130;
+        const clampedLeft = Math.min(Math.max(thumbCx - bw / 2, 0), W - bw);
         bubble.style.left = clampedLeft + 'px';
-        bubble.style.transform = 'none'; // override the translateX(-50%) default
-
-        // Arrow tip: always points to thumbCx regardless of bubble clamping
         if (tip) {
-          const arrowX = thumbCx - clampedLeft; // position within bubble
-          tip.style.left = arrowX + 'px';
+          // Arrow x within the bubble = thumbCx minus bubble's left edge
+          tip.style.left = (thumbCx - clampedLeft) + 'px';
           tip.style.transform = 'translateX(-50%)';
         }
       }
