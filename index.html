@@ -245,11 +245,12 @@
     }
     /* Custom warm map tiles override */
     .leaflet-tile-pane { filter: sepia(0.15) saturate(0.9) brightness(1.02) hue-rotate(-5deg); }
-    .burrito-pin div { transition: transform 0.15s ease, box-shadow 0.15s ease; }
-    .burrito-pin-highlight div:hover {
-      transform: rotate(-45deg) scale(1.25) !important;
-      box-shadow: 0 6px 24px rgba(232,93,38,0.75) !important;
-      z-index: 9999;
+    .burrito-pin .pin-wrapper { transition: transform 0.15s ease; transform-origin: 50% 100%; }
+    .burrito-pin-highlight .pin-wrapper:hover {
+      transform: scale(1.28);
+    }
+    .burrito-pin-highlight .pin-wrapper:hover .pin-inner {
+      box-shadow: 0 6px 28px rgba(232,93,38,0.8) !important;
     }
     .leaflet-control-zoom { display: none; }
     .leaflet-control-attribution { display: none; }
@@ -1023,11 +1024,114 @@
     #search-results {
       background: var(--cream);
       overflow-y: auto;
+      z-index: 600;
+      /* Slide-up transition — always in flow but off-screen by default */
+      display: flex !important;
+      flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.42s cubic-bezier(0.32, 0.72, 0, 1);
+      pointer-events: none;
+    }
+    #search-results.search-open {
+      transform: translateY(0);
+      pointer-events: all;
     }
     .search-results-header {
       padding: 52px 24px 16px;
       background: var(--white);
+      box-shadow: 0 2px 12px rgba(123,79,46,0.07);
+      flex-shrink: 0;
     }
+    @supports (padding: env(safe-area-inset-top)) {
+      .search-results-header { padding-top: calc(env(safe-area-inset-top) + 16px); }
+    }
+    /* Restaurant autocomplete */
+    .log-autocomplete-input {
+      width: 100%;
+      padding: 14px 44px 14px 16px;
+      border: 2px solid rgba(176,168,154,0.3);
+      border-radius: var(--radius);
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--brown);
+      background: var(--cream);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .log-autocomplete-input:focus { border-color: var(--tortilla); }
+    .log-autocomplete-dropdown {
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(100% + 4px);
+      background: var(--white);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 8px 32px rgba(123,79,46,0.18);
+      border: 1.5px solid rgba(176,168,154,0.25);
+      overflow: hidden;
+      z-index: 100;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    .ac-item {
+      padding: 13px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(176,168,154,0.15);
+      transition: background 0.15s;
+    }
+    .ac-item:last-child { border-bottom: none; }
+    .ac-item:hover { background: rgba(212,169,106,0.12); }
+    .ac-item-name { font-weight: 700; font-size: 14px; color: var(--brown); }
+    .ac-item-meta { font-size: 12px; color: var(--shadow); margin-top: 2px; }
+    /* Size slider */
+    .burrito-size-range {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+      margin: 8px 0 6px;
+    }
+    .burrito-size-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--salsa);
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(232,93,38,0.4);
+      border: 3px solid white;
+      transition: transform 0.15s;
+    }
+    .burrito-size-range::-webkit-slider-thumb:hover { transform: scale(1.15); }
+    .burrito-size-range::-moz-range-thumb {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--salsa);
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(232,93,38,0.4);
+      border: 3px solid white;
+    }
+    .size-ticks {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .size-ticks span { font-size: 10px; color: var(--shadow); font-weight: 600; }
+    .size-callout {
+      background: var(--white);
+      border: 2px solid var(--tortilla);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .size-callout-name {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--brown);
+    }
+    .size-callout-desc { font-size: 13px; color: var(--shadow); margin-top: 3px; }
     .search-results-header .search-bar {
       margin-bottom: 12px;
     }
@@ -1357,10 +1461,15 @@
     <div class="review-form-body">
       <div class="form-group">
         <label class="form-label">Restaurant</label>
-        <select id="log-restaurant" style="width:100%;padding:14px 16px;border:2px solid rgba(176,168,154,0.3);border-radius:var(--radius);font-family:var(--font-body);font-size:15px;color:var(--brown);background:var(--cream);outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;">
-          <option value="">Select a restaurant...</option>
-        </select>
-        <div id="log-nearby-hint" style="font-size:12px;color:var(--green);margin-top:6px;display:none;">📍 Auto-selected based on your location</div>
+        <div style="position:relative;">
+          <input type="text" id="log-restaurant-input" class="log-autocomplete-input" placeholder="Start typing a restaurant name..." autocomplete="off"
+            oninput="filterRestaurantAC(this.value)" onfocus="filterRestaurantAC(this.value)"
+            onblur="setTimeout(hideRestaurantAC, 200)">
+          <button id="log-restaurant-clear" onclick="clearRestaurantAC()" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--shadow);font-size:16px;padding:4px;">✕</button>
+          <div id="restaurant-ac-list" class="log-autocomplete-dropdown" style="display:none;"></div>
+        </div>
+        <input type="hidden" id="log-restaurant" value="">
+        <div id="log-nearby-hint" style="font-size:12px;color:var(--green);margin-top:6px;display:none;">📍 Near you — auto-selected</div>
       </div>
       <div class="form-group">
         <label class="form-label">Burrito Type</label>
@@ -1377,12 +1486,16 @@
       </div>
       <div class="form-group">
         <label class="form-label">Size</label>
-        <div style="display:flex;flex-direction:column;gap:8px;" id="burrito-size-selector">
-          <button class="burrito-size-btn" onclick="selectBurritoSize(this)" data-size="snack">🐣 <strong>Baby Burrito</strong> <span style="color:var(--shadow);font-size:13px;">— "I'm being responsible"</span></button>
-          <button class="burrito-size-btn" onclick="selectBurritoSize(this)" data-size="regular">🌮 <strong>The Regular</strong> <span style="color:var(--shadow);font-size:13px;">— "Normal human portions"</span></button>
-          <button class="burrito-size-btn" onclick="selectBurritoSize(this)" data-size="large">🏋️ <strong>The Commitment</strong> <span style="color:var(--shadow);font-size:13px;">— "I skipped the gym for this"</span></button>
-          <button class="burrito-size-btn" onclick="selectBurritoSize(this)" data-size="xl">🦕 <strong>The Regret</strong> <span style="color:var(--shadow);font-size:13px;">— "I knew what I was doing"</span></button>
-          <button class="burrito-size-btn" onclick="selectBurritoSize(this)" data-size="xxl">🚀 <strong>Send Help</strong> <span style="color:var(--shadow);font-size:13px;">— "My jaw is permanently dislocated"</span></button>
+        <div style="text-align:center;margin-bottom:8px;">
+          <span id="size-emoji" style="font-size:40px;transition:font-size 0.25s ease,transform 0.25s ease;display:inline-block;">🌯</span>
+        </div>
+        <input type="range" id="size-slider" class="burrito-size-range" min="0" max="4" step="1" value="2" oninput="updateSizeSlider(this.value)">
+        <div class="size-ticks">
+          <span>Baby</span><span>Regular</span><span>Big</span><span>XL</span><span>Send Help</span>
+        </div>
+        <div class="size-callout">
+          <div class="size-callout-name" id="size-callout-name">The Commitment</div>
+          <div class="size-callout-desc" id="size-callout-desc">"I skipped the gym for this"</div>
         </div>
       </div>
       <div class="form-group">
@@ -1615,7 +1728,7 @@
   <div id="search-results" class="screen">
     <div class="search-results-header">
       <div class="search-bar">
-        <button style="background:none;border:none;font-size:18px;cursor:pointer;" onclick="showScreen('map-screen')">←</button>
+        <button style="background:none;border:none;font-size:18px;cursor:pointer;" onclick="closeSearch()">←</button>
         <input type="text" placeholder="Search burritos..." value="Burritos near me">
         <div class="search-avatar" onclick="showScreen('user-profile')">🌯</div>
       </div>
@@ -1625,6 +1738,7 @@
         <button class="sort-chip">📍 Nearest</button>
         <button class="sort-chip">💵 Price</button>
         <button class="sort-chip">⭐ Expert</button>
+        <button class="sort-chip">📏 Size</button>
       </div>
     </div>
     <div class="search-results-list" id="search-results-list"></div>
@@ -2002,9 +2116,31 @@
       setTimeout(fixViewportHeight, 300);
     });
 
+    // Init size slider gradient on load
+    setTimeout(() => updateSizeSlider(2), 0);
+
     let currentScreen = 'splash';
 
     function showScreen(id) {
+      // Search results slides up over the map — special handling
+      if (id === 'search-results') {
+        // Make sure map is active underneath
+        if (currentScreen !== 'map-screen') {
+          document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+          const mapEl = document.getElementById('map-screen');
+          mapEl.classList.add('active');
+          currentScreen = 'map-screen';
+          setTimeout(() => initMap(), 100);
+        }
+        document.getElementById('search-results').classList.add('search-open');
+        renderSearchResults();
+        closeBottomSheet();
+        return;
+      }
+
+      // Close search overlay if it was open
+      document.getElementById('search-results').classList.remove('search-open');
+
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       const screen = document.getElementById(id);
       screen.classList.add('active', 'screen-transition');
@@ -2014,9 +2150,6 @@
       if (id === 'map-screen') {
         setTimeout(() => initMap(), 100);
       }
-      if (id === 'search-results') {
-        renderSearchResults();
-      }
       if (id === 'write-review') {
         populateRestaurantSelector();
       }
@@ -2024,6 +2157,10 @@
       // Update tab bar
       document.querySelectorAll('.tab-bar-item').forEach(t => t.classList.remove('active'));
       closeBottomSheet();
+    }
+
+    function closeSearch() {
+      document.getElementById('search-results').classList.remove('search-open');
     }
 
     // ===== ONBOARDING =====
@@ -2190,16 +2327,16 @@
       if (dimmed) {
         return L.divIcon({
           className: 'burrito-pin',
-          html: `<div style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;font-size:${size*0.55}px;background:#C0B8B0;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);opacity:0.35;border:2px solid white;cursor:pointer;"><span style="transform:rotate(45deg)">🌯</span></div>`,
+          html: `<div class="pin-wrapper" style="width:${size}px;height:${size}px;"><div class="pin-inner" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:${size*0.55}px;background:#C8C0B8;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);opacity:0.35;border:2px solid white;cursor:pointer;"><span style="transform:rotate(45deg)">🌯</span></div></div>`,
           iconSize: [size, size],
           iconAnchor: [size/2, size],
         });
       }
       return L.divIcon({
         className: 'burrito-pin burrito-pin-highlight',
-        html: `<div style="width:${size+6}px;height:${size+6}px;display:flex;align-items:center;justify-content:center;font-size:${(size+6)*0.55}px;background:${r.expert ? 'linear-gradient(135deg,#E85D26,#FF7A45)' : 'linear-gradient(135deg,#E85D26,#FF7A45)'};border-radius:50% 50% 50% 4px;transform:rotate(-45deg);box-shadow:0 3px 12px rgba(232,93,38,0.55);border:2.5px solid white;cursor:pointer;"><span style="transform:rotate(45deg)">🌯</span></div>`,
-        iconSize: [size+6, size+6],
-        iconAnchor: [(size+6)/2, size+6],
+        html: `<div class="pin-wrapper" style="width:${size}px;height:${size}px;"><div class="pin-inner" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:${size*0.55}px;background:linear-gradient(135deg,#E85D26,#FF7A45);border-radius:50% 50% 50% 4px;transform:rotate(-45deg);box-shadow:0 3px 14px rgba(232,93,38,0.55);border:2.5px solid white;cursor:pointer;"><span style="transform:rotate(45deg)">🌯</span></div></div>`,
+        iconSize: [size, size],
+        iconAnchor: [size/2, size],
       });
     }
 
@@ -2334,6 +2471,8 @@
         sorted = sorted.filter(r => r.expert);
       } else if (sortText.includes('Biggest')) {
         sorted = sorted.filter(r => r.bigPortion);
+      } else if (sortText.includes('Size')) {
+        sorted = sorted.filter(r => r.bigPortion).concat(sorted.filter(r => !r.bigPortion));
       } else {
         // Hottest (default)
         sorted.sort((a, b) => b.rating - a.rating);
@@ -2518,30 +2657,84 @@
     }
 
     // ===== LOG BURRITO =====
-    function populateRestaurantSelector() {
-      const select = document.getElementById('log-restaurant');
-      select.innerHTML = '<option value="">Select a restaurant...</option>';
-      restaurants.forEach((r, i) => {
-        const opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = r.name + ' — ' + r.category;
-        select.appendChild(opt);
-      });
-      // Auto-select nearby restaurant if within ~0.5km
-      if (userLocation.lat && userLocation.lng) {
-        let closest = null, closestDist = Infinity;
-        restaurants.forEach((r, i) => {
-          const d = Math.hypot(r.lat - userLocation.lat, r.lng - userLocation.lng);
-          if (d < closestDist) { closestDist = d; closest = i; }
-        });
-        const thresholdDeg = 0.005; // ~0.5km
-        if (closestDist < thresholdDeg) {
-          select.value = closest;
-          document.getElementById('log-nearby-hint').style.display = 'block';
-        } else {
-          document.getElementById('log-nearby-hint').style.display = 'none';
-        }
+    const sizeData = [
+      { name: 'The Baby Wrap', desc: '"Just a snack, I said"', emoji: 26 },
+      { name: 'The Regular', desc: '"Classic. No shame."', emoji: 34 },
+      { name: 'The Commitment', desc: '"I skipped the gym for this"', emoji: 44 },
+      { name: 'The XL Decision', desc: '"Tomorrow is a new day"', emoji: 56 },
+      { name: 'Send Help', desc: '"This burrito has a burrito inside"', emoji: 70 },
+    ];
+
+    function updateSizeSlider(val) {
+      const v = parseInt(val);
+      const data = sizeData[v];
+      const emoji = document.getElementById('size-emoji');
+      const name = document.getElementById('size-callout-name');
+      const desc = document.getElementById('size-callout-desc');
+      if (emoji) emoji.style.fontSize = data.emoji + 'px';
+      if (name) name.textContent = data.name;
+      if (desc) desc.textContent = data.desc;
+      // Update slider track fill
+      const slider = document.getElementById('size-slider');
+      if (slider) {
+        const pct = (v / 4) * 100;
+        slider.style.background = `linear-gradient(to right, var(--salsa) ${pct}%, rgba(176,168,154,0.3) ${pct}%)`;
       }
+    }
+
+    function populateRestaurantSelector() {
+      // Reset autocomplete input and hidden field
+      const input = document.getElementById('log-restaurant-input');
+      const hidden = document.getElementById('log-restaurant');
+      const clearBtn = document.getElementById('log-restaurant-clear');
+      if (input) { input.value = ''; input.disabled = false; }
+      if (hidden) hidden.value = '';
+      if (clearBtn) clearBtn.style.display = 'none';
+      hideRestaurantAC();
+      document.getElementById('log-nearby-hint').style.display = 'none';
+      // Reset size slider
+      const slider = document.getElementById('size-slider');
+      if (slider) { slider.value = 2; updateSizeSlider(2); }
+    }
+
+    function filterRestaurantAC(query) {
+      const list = document.getElementById('restaurant-ac-list');
+      const clearBtn = document.getElementById('log-restaurant-clear');
+      if (!list) return;
+      clearBtn.style.display = query.trim() ? 'block' : 'none';
+      if (!query.trim()) { list.style.display = 'none'; return; }
+      const q = query.toLowerCase();
+      const matches = restaurants.map((r, i) => ({r, i})).filter(({r}) =>
+        r.name.toLowerCase().includes(q) || r.category.toLowerCase().includes(q)
+      ).slice(0, 8);
+      if (!matches.length) { list.style.display = 'none'; return; }
+      list.innerHTML = matches.map(({r, i}) => `
+        <div class="ac-item" onmousedown="selectRestaurantAC(${i})">
+          <div class="ac-item-name">${r.name}</div>
+          <div class="ac-item-meta">${r.category} · ${r.distance || '—'}</div>
+        </div>`).join('');
+      list.style.display = 'block';
+    }
+
+    function selectRestaurantAC(idx) {
+      const r = restaurants[idx];
+      document.getElementById('log-restaurant-input').value = r.name;
+      document.getElementById('log-restaurant').value = idx;
+      document.getElementById('log-restaurant-clear').style.display = 'block';
+      document.getElementById('restaurant-ac-list').style.display = 'none';
+    }
+
+    function clearRestaurantAC() {
+      document.getElementById('log-restaurant-input').value = '';
+      document.getElementById('log-restaurant').value = '';
+      document.getElementById('log-restaurant-clear').style.display = 'none';
+      document.getElementById('restaurant-ac-list').style.display = 'none';
+      document.getElementById('log-restaurant-input').focus();
+    }
+
+    function hideRestaurantAC() {
+      const list = document.getElementById('restaurant-ac-list');
+      if (list) list.style.display = 'none';
     }
 
     function selectBurritoType(btn) {
@@ -2549,27 +2742,21 @@
       btn.classList.add('active');
     }
 
-    function selectBurritoSize(btn) {
-      document.querySelectorAll('.burrito-size-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    }
-
     function submitBurritoLog() {
       const restaurantIdx = document.getElementById('log-restaurant').value;
       const typeBtn = document.querySelector('.burrito-type-btn.active');
-      const sizeBtn = document.querySelector('.burrito-size-btn.active');
+      const sliderVal = parseInt(document.getElementById('size-slider').value);
       const ratingBtns = document.querySelectorAll('#flame-selector .flame-btn.active');
       const notes = document.getElementById('log-notes').value;
 
-      if (!restaurantIdx) { alert('Please select a restaurant.'); return; }
+      if (restaurantIdx === '') { alert('Please select a restaurant.'); return; }
       if (!typeBtn) { alert('Please select a burrito type.'); return; }
-      if (!sizeBtn) { alert('Please select a size.'); return; }
 
       const restaurant = restaurants[parseInt(restaurantIdx)];
       const type = typeBtn.textContent.trim();
-      const size = sizeBtn.querySelector('strong').textContent;
+      const size = sizeData[sliderVal].name;
       const rating = ratingBtns.length;
-      const flames = '🔥'.repeat(rating);
+      const flames = '🔥'.repeat(rating) || '—';
       const date = 'Just now';
 
       // Add to My Burritos list in the profile
@@ -2592,9 +2779,8 @@
       if (counterEl) counterEl.textContent = parseInt(counterEl.textContent || 0) + 1;
 
       // Reset form
-      document.getElementById('log-restaurant').value = '';
+      populateRestaurantSelector();
       document.querySelectorAll('.burrito-type-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.burrito-size-btn').forEach(b => b.classList.remove('active'));
       document.getElementById('log-notes').value = '';
 
       showScreen('map-screen');
