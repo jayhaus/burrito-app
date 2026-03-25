@@ -162,8 +162,9 @@
       justify-content: center;
       text-align: center;
       padding: 40px 32px;
+      height: 100%;
     }
-    .onboarding-steps { width: 100%; max-width: 360px; display: flex; flex-direction: column; align-items: center; }
+    .onboarding-steps { width: 100%; max-width: 360px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; }
     .onboarding-step {
       display: none;
       flex-direction: column;
@@ -1458,6 +1459,9 @@
         </div>
         <button class="btn-primary" onclick="handleLogin()" style="margin-top:8px;">Log In 🔥</button>
       </div>
+      <div style="text-align:center;margin-top:16px;">
+        <button onclick="document.getElementById('auth-modal').classList.remove('visible')" style="background:none;border:none;color:var(--shadow);font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-body);">Skip for now — browse as guest</button>
+      </div>
     </div>
   </div>
 
@@ -1867,7 +1871,12 @@
     function nextOnboardingStep() {
       onboardingStep++;
       if (onboardingStep >= 3) {
+        // Show create account screen after onboarding
         showScreen('map-screen');
+        setTimeout(() => {
+          document.getElementById('auth-modal').classList.add('visible');
+          showAuthTab('signup');
+        }, 400);
         return;
       }
       document.querySelectorAll('.onboarding-step').forEach(s => s.classList.remove('active'));
