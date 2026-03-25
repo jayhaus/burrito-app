@@ -1,0 +1,2203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Burrito — The map your stomach needs.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" onerror="window._leafletFailed=true"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌯</text></svg>">
+  <style>
+    /* ===== CSS RESET & VARIABLES ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --tortilla: #D4A96A;
+      --brown: #7B4F2E;
+      --green: #6B8F47;
+      --salsa: #E85D26;
+      --cream: #FAF4EC;
+      --shadow: #B0A89A;
+      --white: #FFFFFF;
+      --font-display: 'Nunito', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --radius-xs: 8px;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: var(--font-body);
+      background: var(--cream);
+      color: var(--brown);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== SCREEN MANAGEMENT ===== */
+    .screen {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .screen.active { display: flex; }
+    #map-screen.active { display: block; }
+    .screen-transition {
+      animation: fadeSlideIn 0.35s ease-out;
+    }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== SPLASH SCREEN ===== */
+    #splash {
+      background: linear-gradient(170deg, var(--cream) 0%, #F5E6D0 40%, var(--tortilla) 100%);
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    #splash::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(232,93,38,0.12) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    #splash::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; left: -60px;
+      width: 250px; height: 250px;
+      background: radial-gradient(circle, rgba(107,143,71,0.1) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .splash-content { position: relative; z-index: 1; }
+    .splash-logo {
+      font-family: var(--font-display);
+      font-size: 52px;
+      font-weight: 900;
+      color: var(--brown);
+      letter-spacing: -1px;
+      margin-bottom: 4px;
+    }
+    .splash-logo .emoji { font-size: 44px; margin-left: 4px; }
+    .splash-slogan {
+      font-family: var(--font-body);
+      font-size: 16px;
+      color: var(--shadow);
+      font-style: italic;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    .splash-city {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--tortilla);
+      margin-bottom: 48px;
+    }
+    .splash-skyline {
+      width: 280px;
+      height: 60px;
+      margin: 0 auto 48px;
+      opacity: 0.18;
+    }
+    .splash-skyline svg { width: 100%; height: 100%; }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--salsa);
+      color: white;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 17px;
+      padding: 16px 48px;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(232,93,38,0.35);
+      width: 100%;
+      max-width: 320px;
+      margin-bottom: 16px;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(232,93,38,0.45); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      color: var(--brown);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 15px;
+      padding: 14px 48px;
+      border: 2px solid var(--tortilla);
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+      max-width: 320px;
+    }
+    .btn-secondary:hover { background: rgba(212,169,106,0.1); }
+
+    /* ===== ONBOARDING ===== */
+    #onboarding {
+      background: var(--cream);
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 32px;
+    }
+    .onboarding-steps { width: 100%; max-width: 360px; display: flex; flex-direction: column; align-items: center; }
+    .onboarding-step {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeSlideIn 0.35s ease-out;
+    }
+    .onboarding-step.active { display: flex; }
+    .onboarding-icon { font-size: 64px; margin-bottom: 24px; }
+    .onboarding-title {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      color: var(--brown);
+    }
+    .onboarding-desc {
+      font-size: 15px;
+      color: var(--shadow);
+      line-height: 1.6;
+      margin-bottom: 40px;
+      max-width: 300px;
+    }
+    .onboarding-dots {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+    .onboarding-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--tortilla);
+      opacity: 0.3;
+      transition: all 0.3s;
+    }
+    .onboarding-dot.active { opacity: 1; width: 24px; border-radius: 4px; background: var(--salsa); }
+
+    /* ===== MAP SCREEN ===== */
+    #map-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--cream);
+    }
+    #map {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      background: var(--cream);
+    }
+    @keyframes userPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.5; }
+    }
+    /* Custom warm map tiles override */
+    .leaflet-tile-pane { filter: sepia(0.15) saturate(0.9) brightness(1.02) hue-rotate(-5deg); }
+    .leaflet-control-zoom { display: none; }
+    .leaflet-control-attribution { display: none; }
+
+    /* Map top bar */
+    .map-top {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      padding: 52px 16px 0;
+      pointer-events: none;
+    }
+    .map-top > * { pointer-events: auto; }
+    .search-bar {
+      display: flex;
+      align-items: center;
+      background: var(--white);
+      border-radius: 50px;
+      padding: 12px 20px;
+      box-shadow: 0 2px 16px rgba(123,79,46,0.12);
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .search-bar svg { flex-shrink: 0; color: var(--shadow); }
+    .search-bar input {
+      border: none;
+      outline: none;
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--brown);
+      background: transparent;
+      width: 100%;
+    }
+    .search-bar input::placeholder { color: var(--shadow); }
+    .search-bar .search-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--tortilla), var(--salsa));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .filter-chips {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .filter-chips::-webkit-scrollbar { display: none; }
+    .filter-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--white);
+      border: 1.5px solid transparent;
+      border-radius: 50px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--brown);
+      white-space: nowrap;
+      cursor: pointer;
+      box-shadow: 0 1px 8px rgba(123,79,46,0.08);
+      transition: all 0.2s;
+    }
+    .filter-chip:hover { border-color: var(--tortilla); }
+    .filter-chip.active { background: var(--salsa); color: white; border-color: var(--salsa); }
+    .filter-chip .chip-icon { font-size: 14px; }
+
+    .city-pill {
+      position: absolute;
+      top: 52px;
+      right: 16px;
+      z-index: 1000;
+      background: var(--white);
+      border-radius: 50px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--brown);
+      box-shadow: 0 2px 12px rgba(123,79,46,0.1);
+      cursor: pointer;
+      display: none; /* hidden on mobile, search bar has avatar instead */
+    }
+
+    /* ===== BOTTOM SHEET ===== */
+    .bottom-sheet-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(123,79,46,0.2);
+      z-index: 1001;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .bottom-sheet-overlay.visible { display: block; opacity: 1; }
+
+    .bottom-sheet {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      z-index: 1002;
+      background: var(--white);
+      border-radius: 24px 24px 0 0;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    .bottom-sheet.open { transform: translateY(0); }
+    .bottom-sheet-handle {
+      width: 36px; height: 4px;
+      background: var(--shadow);
+      opacity: 0.3;
+      border-radius: 2px;
+      margin: 12px auto 0;
+    }
+    .bottom-sheet-content {
+      padding: 20px 24px 32px;
+    }
+    .bs-photo {
+      width: 100%;
+      height: 160px;
+      border-radius: var(--radius);
+      object-fit: cover;
+      background: linear-gradient(135deg, #F5E6D0, var(--tortilla));
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      overflow: hidden;
+    }
+    .bs-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .bs-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .bs-name {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--brown);
+    }
+    .bs-expert-badge {
+      background: linear-gradient(135deg, var(--green), #8AAF5A);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 50px;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    .bs-flames {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-bottom: 12px;
+    }
+    .bs-flames .flame { font-size: 20px; }
+    .bs-flames .flame.empty { opacity: 0.2; }
+    .bs-flames .rating-num {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--brown);
+      margin-left: 8px;
+    }
+    .bs-stats {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: var(--shadow);
+      font-weight: 500;
+    }
+    .bs-stats span { display: flex; align-items: center; gap: 4px; }
+    .bs-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .bs-actions .btn-primary {
+      flex: 1;
+      padding: 14px 16px;
+      font-size: 14px;
+      margin-bottom: 0;
+    }
+    .bs-actions .btn-outline {
+      flex: 1;
+      padding: 14px 16px;
+      font-size: 14px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      background: transparent;
+      color: var(--brown);
+      border: 2px solid var(--tortilla);
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .bs-actions .btn-outline:hover { background: rgba(212,169,106,0.1); }
+
+    /* ===== RESTAURANT PROFILE ===== */
+    #restaurant-profile {
+      background: var(--white);
+      overflow-y: auto;
+    }
+    .profile-hero {
+      width: 100%;
+      height: 220px;
+      background: linear-gradient(135deg, #F5E6D0, var(--tortilla));
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 72px;
+      overflow: hidden;
+    }
+    .profile-hero img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .profile-back {
+      position: absolute;
+      top: 52px; left: 16px;
+      width: 40px; height: 40px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      font-size: 18px;
+      z-index: 2;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .profile-body { padding: 24px; }
+    .profile-name-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .profile-name {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--brown);
+    }
+    .profile-category {
+      font-size: 14px;
+      color: var(--shadow);
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+    .profile-rating-block {
+      background: var(--cream);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .profile-rating-title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--shadow);
+      margin-bottom: 12px;
+    }
+    .profile-rating-big {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .profile-rating-num {
+      font-family: var(--font-display);
+      font-size: 42px;
+      font-weight: 900;
+      color: var(--salsa);
+    }
+    .profile-rating-flames { display: flex; gap: 4px; }
+    .profile-rating-flames .flame { font-size: 28px; }
+    .profile-rating-flames .flame.empty { opacity: 0.2; }
+    .profile-rating-breakdown {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .rating-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--shadow);
+    }
+    .rating-bar-label { width: 80px; flex-shrink: 0; }
+    .rating-bar {
+      flex: 1;
+      height: 6px;
+      background: rgba(176,168,154,0.2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .rating-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--salsa);
+      transition: width 0.6s ease;
+    }
+    .rating-bar-val { width: 30px; text-align: right; font-weight: 600; color: var(--brown); }
+
+    /* Reviews section */
+    .profile-section-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--brown);
+      margin-bottom: 16px;
+    }
+    .review-card {
+      background: var(--cream);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .review-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .review-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--tortilla), var(--green));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+    }
+    .review-meta { flex: 1; }
+    .review-author {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--brown);
+    }
+    .review-date {
+      font-size: 12px;
+      color: var(--shadow);
+    }
+    .review-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--green);
+      background: rgba(107,143,71,0.12);
+      padding: 3px 8px;
+      border-radius: 50px;
+    }
+    .review-flames {
+      display: flex;
+      gap: 1px;
+      margin-bottom: 8px;
+    }
+    .review-flames .flame { font-size: 14px; }
+    .review-flames .flame.empty { opacity: 0.2; }
+    .review-text {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--brown);
+    }
+    .review-boost {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--salsa);
+      background: rgba(232,93,38,0.08);
+      padding: 4px 10px;
+      border-radius: 50px;
+    }
+
+    .profile-cta-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+      padding-bottom: 100px;
+    }
+    .profile-cta-row .btn-primary { flex: 1; margin-bottom: 0; font-size: 15px; }
+    .profile-cta-row .btn-outline {
+      flex: 1;
+      padding: 14px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 15px;
+      background: transparent;
+      color: var(--brown);
+      border: 2px solid var(--tortilla);
+      border-radius: 50px;
+      cursor: pointer;
+    }
+
+    /* ===== WRITE REVIEW ===== */
+    #write-review {
+      background: var(--cream);
+      overflow-y: auto;
+    }
+    .review-form-header {
+      padding: 52px 24px 20px;
+      background: var(--white);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .review-form-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--brown);
+    }
+    .review-form-body {
+      padding: 24px;
+    }
+    .form-group {
+      margin-bottom: 24px;
+    }
+    .form-label {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--shadow);
+      margin-bottom: 12px;
+      display: block;
+    }
+    .flame-selector {
+      display: flex;
+      gap: 8px;
+    }
+    .flame-selector .flame-btn {
+      font-size: 36px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      opacity: 0.25;
+      transition: all 0.2s;
+      padding: 4px;
+    }
+    .flame-selector .flame-btn.active { opacity: 1; transform: scale(1.15); }
+    .flame-selector .flame-btn:hover { opacity: 0.7; transform: scale(1.1); }
+    .form-textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 16px;
+      border: 2px solid rgba(176,168,154,0.3);
+      border-radius: var(--radius);
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--brown);
+      background: var(--white);
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-textarea:focus { border-color: var(--salsa); }
+    .form-textarea::placeholder { color: var(--shadow); }
+
+    .boost-toggle {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.2s;
+    }
+    .boost-toggle.active { border-color: var(--salsa); }
+    .boost-icon { font-size: 28px; }
+    .boost-info { flex: 1; }
+    .boost-title { font-weight: 700; font-size: 15px; color: var(--brown); }
+    .boost-desc { font-size: 13px; color: var(--shadow); margin-top: 2px; }
+    .boost-amounts {
+      display: flex;
+      gap: 6px;
+      margin-top: 12px;
+    }
+    .boost-amt {
+      padding: 6px 14px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 700;
+      background: var(--cream);
+      color: var(--brown);
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .boost-amt.active { background: var(--salsa); color: white; border-color: var(--salsa); }
+
+    .submit-review-btn {
+      margin-top: 16px;
+      padding-bottom: 100px;
+    }
+
+    /* ===== USER PROFILE ===== */
+    #user-profile {
+      background: var(--cream);
+      overflow-y: auto;
+    }
+    .user-profile-header {
+      background: var(--white);
+      padding: 52px 24px 24px;
+      text-align: center;
+      position: relative;
+    }
+    .user-profile-back {
+      position: absolute;
+      top: 52px; left: 16px;
+      width: 40px; height: 40px;
+      background: var(--cream);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      font-size: 18px;
+    }
+    .user-avatar-big {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--salsa), var(--tortilla));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px;
+      margin: 0 auto 12px;
+      box-shadow: 0 4px 16px rgba(232,93,38,0.25);
+    }
+    .user-display-name {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--brown);
+      margin-bottom: 4px;
+    }
+    .user-handle {
+      font-size: 14px;
+      color: var(--shadow);
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+    .burrito-counter {
+      background: linear-gradient(135deg, var(--salsa), #FF7A45);
+      border-radius: var(--radius);
+      padding: 24px;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      text-align: left;
+    }
+    .burrito-counter-emoji { font-size: 42px; }
+    .burrito-counter-num {
+      font-family: var(--font-display);
+      font-size: 36px;
+      font-weight: 900;
+    }
+    .burrito-counter-label {
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0.85;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .user-stats-row {
+      display: flex;
+      gap: 12px;
+      padding: 20px 24px;
+    }
+    .user-stat-card {
+      flex: 1;
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 16px;
+      text-align: center;
+    }
+    .user-stat-val {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--brown);
+    }
+    .user-stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--shadow);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+    .user-badge-section {
+      padding: 0 24px 20px;
+    }
+    .trust-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--white);
+      border-radius: 50px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--green);
+    }
+    .trust-badge .badge-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+    .streak-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--white);
+      border-radius: 50px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--salsa);
+      margin-left: 8px;
+    }
+    .user-section {
+      padding: 0 24px 24px;
+    }
+    .user-section-title {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--brown);
+      margin-bottom: 12px;
+    }
+    .fav-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+    }
+    .fav-card:hover { box-shadow: 0 2px 12px rgba(123,79,46,0.1); }
+    .fav-card-icon {
+      width: 48px; height: 48px;
+      border-radius: var(--radius-xs);
+      background: linear-gradient(135deg, #F5E6D0, var(--tortilla));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .fav-card-info { flex: 1; }
+    .fav-card-name { font-weight: 700; font-size: 15px; color: var(--brown); }
+    .fav-card-meta { font-size: 12px; color: var(--shadow); margin-top: 2px; }
+    .fav-card-flames { display: flex; font-size: 14px; }
+
+    .milestone-card {
+      background: linear-gradient(135deg, var(--brown), #5A3A1E);
+      border-radius: var(--radius);
+      padding: 24px;
+      color: white;
+      text-align: center;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .milestone-card::before {
+      content: '🌯';
+      position: absolute;
+      top: -10px; right: -10px;
+      font-size: 80px;
+      opacity: 0.1;
+    }
+    .milestone-title {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      opacity: 0.7;
+      margin-bottom: 8px;
+    }
+    .milestone-msg {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+    .milestone-share {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 10px 24px;
+      border-radius: 50px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    /* ===== SEARCH RESULTS LIST ===== */
+    #search-results {
+      background: var(--cream);
+      overflow-y: auto;
+    }
+    .search-results-header {
+      padding: 52px 24px 16px;
+      background: var(--white);
+    }
+    .search-results-header .search-bar {
+      margin-bottom: 12px;
+    }
+    .sort-chips {
+      display: flex;
+      gap: 8px;
+    }
+    .sort-chip {
+      padding: 6px 14px;
+      border-radius: 50px;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--cream);
+      color: var(--brown);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sort-chip.active { background: var(--brown); color: white; }
+    .search-results-list { padding: 16px 24px; padding-bottom: 100px; }
+    .result-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      gap: 14px;
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+    }
+    .result-card:hover { box-shadow: 0 2px 12px rgba(123,79,46,0.1); }
+    .result-card-img {
+      width: 72px; height: 72px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, #F5E6D0, var(--tortilla));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px;
+      flex-shrink: 0;
+    }
+    .result-card-info { flex: 1; }
+    .result-card-top { display: flex; align-items: flex-start; justify-content: space-between; }
+    .result-card-name { font-weight: 700; font-size: 16px; color: var(--brown); }
+    .result-card-distance { font-size: 12px; color: var(--shadow); font-weight: 500; }
+    .result-card-flames { display: flex; align-items: center; gap: 1px; margin-top: 4px; }
+    .result-card-flames .flame { font-size: 15px; }
+    .result-card-flames .flame.empty { opacity: 0.2; }
+    .result-card-flames .rating-text { font-size: 13px; font-weight: 600; color: var(--brown); margin-left: 6px; }
+    .result-card-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+    .result-tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 50px;
+      background: var(--cream);
+      color: var(--shadow);
+    }
+    .result-tag.expert { background: rgba(107,143,71,0.12); color: var(--green); }
+    .result-tag.boosted { background: rgba(232,93,38,0.08); color: var(--salsa); }
+    .result-tag.sponsored { background: rgba(212,169,106,0.15); color: var(--tortilla); }
+
+    /* ===== CITY SELECTOR ===== */
+    #city-selector {
+      background: var(--cream);
+      overflow-y: auto;
+    }
+    .city-header {
+      padding: 52px 24px 20px;
+      background: var(--white);
+    }
+    .city-header-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .city-header-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--brown);
+    }
+    .city-body { padding: 24px; }
+    .city-section-title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--shadow);
+      margin-bottom: 14px;
+    }
+    .city-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+    }
+    .city-card:hover { box-shadow: 0 2px 12px rgba(123,79,46,0.1); }
+    .city-card.active { border: 2px solid var(--salsa); }
+    .city-card-emoji { font-size: 28px; }
+    .city-card-info { flex: 1; }
+    .city-card-name { font-weight: 700; font-size: 16px; color: var(--brown); }
+    .city-card-count { font-size: 12px; color: var(--shadow); margin-top: 2px; }
+    .city-card-arrow { color: var(--shadow); font-size: 18px; }
+    .city-card.coming-soon {
+      opacity: 0.6;
+    }
+    .coming-soon-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--tortilla);
+      background: rgba(212,169,106,0.15);
+      padding: 3px 8px;
+      border-radius: 50px;
+      letter-spacing: 0.5px;
+    }
+    .city-request {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      margin-top: 12px;
+    }
+    .city-request p {
+      font-size: 14px;
+      color: var(--shadow);
+      margin-bottom: 12px;
+    }
+    .city-request .btn-secondary {
+      padding: 10px 24px;
+      font-size: 13px;
+    }
+
+    /* ===== BOTTOM TAB BAR ===== */
+    .tab-bar {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      z-index: 999;
+      background: var(--white);
+      display: flex;
+      padding: 8px 0 28px;
+      box-shadow: 0 -2px 16px rgba(123,79,46,0.08);
+      border-radius: 20px 20px 0 0;
+    }
+    .tab-bar-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px 0;
+      transition: all 0.2s;
+    }
+    .tab-bar-item svg { width: 22px; height: 22px; color: var(--shadow); transition: color 0.2s; }
+    .tab-bar-item span {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--shadow);
+      transition: color 0.2s;
+    }
+    .tab-bar-item.active svg { color: var(--salsa); }
+    .tab-bar-item.active span { color: var(--salsa); }
+
+    /* ===== AUTH MODAL ===== */
+    #auth-modal.visible { display: flex !important; }
+
+    /* ===== UTILITIES ===== */
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+  </style>
+</head>
+<body>
+
+  <!-- ===== SPLASH SCREEN ===== -->
+  <div id="splash" class="screen active">
+    <div class="splash-content">
+      <div class="splash-skyline">
+        <svg viewBox="0 0 280 60" fill="none">
+          <rect x="10" y="30" width="14" height="30" rx="2" fill="#7B4F2E"/>
+          <rect x="28" y="20" width="10" height="40" rx="2" fill="#7B4F2E"/>
+          <rect x="42" y="25" width="18" height="35" rx="2" fill="#7B4F2E"/>
+          <rect x="64" y="10" width="12" height="50" rx="2" fill="#7B4F2E"/>
+          <rect x="80" y="22" width="16" height="38" rx="2" fill="#7B4F2E"/>
+          <rect x="100" y="32" width="20" height="28" rx="2" fill="#7B4F2E"/>
+          <rect x="124" y="15" width="8" height="45" rx="2" fill="#7B4F2E"/>
+          <rect x="136" y="28" width="14" height="32" rx="2" fill="#7B4F2E"/>
+          <rect x="154" y="18" width="12" height="42" rx="2" fill="#7B4F2E"/>
+          <rect x="170" y="34" width="18" height="26" rx="2" fill="#7B4F2E"/>
+          <rect x="192" y="12" width="10" height="48" rx="2" fill="#7B4F2E"/>
+          <rect x="206" y="26" width="16" height="34" rx="2" fill="#7B4F2E"/>
+          <rect x="226" y="30" width="12" height="30" rx="2" fill="#7B4F2E"/>
+          <rect x="242" y="22" width="14" height="38" rx="2" fill="#7B4F2E"/>
+          <rect x="260" y="35" width="10" height="25" rx="2" fill="#7B4F2E"/>
+          <!-- Coronado Bridge arc -->
+          <path d="M 0 55 Q 140 20 280 55" stroke="#7B4F2E" stroke-width="2" fill="none" opacity="0.4"/>
+          <!-- Water line -->
+          <line x1="0" y1="58" x2="280" y2="58" stroke="#7B4F2E" stroke-width="1" opacity="0.2"/>
+        </svg>
+      </div>
+      <div class="splash-logo">Burrito <span class="emoji">🌯</span></div>
+      <div class="splash-slogan">The map your stomach needs.</div>
+      <div class="splash-city">Launching in San Diego, CA</div>
+      <button class="btn-primary" onclick="showScreen('onboarding')">Get Started</button>
+      <button class="btn-secondary" onclick="showScreen('map-screen')">Skip to Map</button>
+    </div>
+  </div>
+
+  <!-- ===== ONBOARDING ===== -->
+  <div id="onboarding" class="screen">
+    <div class="onboarding-steps">
+      <div class="onboarding-step active" data-step="0">
+        <div class="onboarding-icon">📍</div>
+        <div class="onboarding-title">Find Burritos Near You</div>
+        <div class="onboarding-desc">Every burrito spot on the map — the best ones are bigger, so you can spot them instantly.</div>
+      </div>
+      <div class="onboarding-step" data-step="1">
+        <div class="onboarding-icon">🔥</div>
+        <div class="onboarding-title">The Heat Rating</div>
+        <div class="onboarding-desc">1–5 flames based on expert reviews, community ratings, and loyalty boosts. Trust the heat.</div>
+      </div>
+      <div class="onboarding-step" data-step="2">
+        <div class="onboarding-icon">🌯</div>
+        <div class="onboarding-title">Track Your Journey</div>
+        <div class="onboarding-desc">Count every burrito, build your streak, earn badges, and boost your favorites.</div>
+      </div>
+      <div class="onboarding-dots">
+        <div class="onboarding-dot active" data-dot="0"></div>
+        <div class="onboarding-dot" data-dot="1"></div>
+        <div class="onboarding-dot" data-dot="2"></div>
+      </div>
+      <button class="btn-primary" id="onboarding-next" onclick="nextOnboardingStep()">Next</button>
+    </div>
+  </div>
+
+  <!-- ===== MAP SCREEN ===== -->
+  <div id="map-screen" class="screen">
+    <div id="map"></div>
+    <div class="map-top">
+      <div class="search-bar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search burritos..." onclick="showScreen('search-results')">
+        <div class="search-avatar" onclick="showScreen('user-profile')">🌯</div>
+      </div>
+      <div class="filter-chips">
+        <div class="filter-chip active"><span class="chip-icon">🔥</span> Heat Rating</div>
+        <div class="filter-chip"><span class="chip-icon">📍</span> Distance</div>
+        <div class="filter-chip"><span class="chip-icon">💵</span> Price</div>
+        <div class="filter-chip"><span class="chip-icon">⭐</span> Expert Picks</div>
+        <div class="filter-chip" onclick="showScreen('city-selector')"><span class="chip-icon">🏙️</span> San Diego ▾</div>
+      </div>
+    </div>
+    <div class="bottom-sheet-overlay" id="bs-overlay" onclick="closeBottomSheet()"></div>
+    <div class="bottom-sheet" id="bottom-sheet">
+      <div class="bottom-sheet-handle"></div>
+      <div class="bottom-sheet-content" id="bs-content"></div>
+    </div>
+    <div class="tab-bar">
+      <button class="tab-bar-item active" onclick="showScreen('map-screen')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        <span>Map</span>
+      </button>
+      <button class="tab-bar-item" onclick="showScreen('search-results')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span>Search</span>
+      </button>
+      <button class="tab-bar-item" onclick="showScreen('write-review')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        <span>Review</span>
+      </button>
+      <button class="tab-bar-item" onclick="showScreen('user-profile')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Profile</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== RESTAURANT PROFILE ===== -->
+  <div id="restaurant-profile" class="screen">
+    <div class="profile-hero" id="profile-hero">🌯</div>
+    <button class="profile-back" onclick="showScreen('map-screen')">←</button>
+    <div class="profile-body" id="profile-body"></div>
+  </div>
+
+  <!-- ===== WRITE REVIEW ===== -->
+  <div id="write-review" class="screen">
+    <div class="review-form-header">
+      <button class="profile-back" style="position:static;box-shadow:none;background:var(--cream);" onclick="showScreen('map-screen')">←</button>
+      <div class="review-form-title">Write a Review</div>
+    </div>
+    <div class="review-form-body">
+      <div class="form-group">
+        <label class="form-label">Restaurant</label>
+        <div style="font-weight:700;font-size:17px;color:var(--brown);">Lucha Libre Taco Shop</div>
+        <div style="font-size:13px;color:var(--shadow);margin-top:4px;">Mission Hills, San Diego</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Heat Rating</label>
+        <div class="flame-selector" id="flame-selector">
+          <button class="flame-btn active" data-rating="1">🔥</button>
+          <button class="flame-btn active" data-rating="2">🔥</button>
+          <button class="flame-btn active" data-rating="3">🔥</button>
+          <button class="flame-btn active" data-rating="4">🔥</button>
+          <button class="flame-btn" data-rating="5">🔥</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Review</label>
+        <textarea class="form-textarea" placeholder="What did you think? Tell us about the tortilla, fillings, salsa..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Loyalty Boost (optional)</label>
+        <div class="boost-toggle active" onclick="this.classList.toggle('active')">
+          <div class="boost-icon">🔥</div>
+          <div class="boost-info">
+            <div class="boost-title">Boost this review</div>
+            <div class="boost-desc">Put money behind your opinion — boosts increase your review's weight</div>
+            <div class="boost-amounts">
+              <span class="boost-amt">$1</span>
+              <span class="boost-amt active">$3</span>
+              <span class="boost-amt">$5</span>
+              <span class="boost-amt">$10</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="submit-review-btn">
+        <button class="btn-primary" onclick="showScreen('map-screen')">Submit Review 🔥</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== USER PROFILE ===== -->
+  <div id="user-profile" class="screen">
+    <!-- Guest view (default) -->
+    <div id="guest-profile">
+      <div class="user-profile-header">
+        <button class="user-profile-back" onclick="showScreen('map-screen')">←</button>
+        <div class="user-avatar-big">🤤</div>
+        <div class="user-display-name">Hungry Explorer</div>
+        <div class="user-handle">Browsing as guest</div>
+        <div class="burrito-counter" style="background:linear-gradient(135deg, var(--shadow), #8A8078);">
+          <div class="burrito-counter-emoji">🌯</div>
+          <div>
+            <div class="burrito-counter-num">0</div>
+            <div class="burrito-counter-label">Burritos Eaten</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:24px;text-align:center;">
+        <div style="font-size:48px;margin-bottom:16px;">🌯</div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--brown);margin-bottom:8px;">Track Your Burrito Journey</div>
+        <div style="font-size:14px;color:var(--shadow);line-height:1.6;margin-bottom:24px;max-width:300px;margin-left:auto;margin-right:auto;">Create an account to save favorites, write reviews, earn badges, and count every burrito you eat.</div>
+        <button class="btn-primary" style="max-width:300px;" onclick="document.getElementById('auth-modal').classList.add('visible')">Create Account</button>
+        <button class="btn-secondary" style="max-width:300px;margin-top:12px;" onclick="document.getElementById('auth-modal').classList.add('visible');showAuthTab('login')">Log In</button>
+      </div>
+      <div class="user-section">
+        <div class="user-section-title">Popular Near You</div>
+        <div class="fav-card" onclick="openRestaurantProfile(restaurants[0])">
+          <div class="fav-card-icon">🌯</div>
+          <div class="fav-card-info">
+            <div class="fav-card-name">Lucha Libre Taco Shop</div>
+            <div class="fav-card-meta">Mission Hills · 0.3 mi</div>
+          </div>
+          <div class="fav-card-flames">🔥🔥🔥🔥🔥</div>
+        </div>
+        <div class="fav-card" onclick="openRestaurantProfile(restaurants[1])">
+          <div class="fav-card-icon">🌯</div>
+          <div class="fav-card-info">
+            <div class="fav-card-name">Lolita's Mexican Food</div>
+            <div class="fav-card-meta">Kearny Mesa · 2.1 mi</div>
+          </div>
+          <div class="fav-card-flames">🔥🔥🔥🔥</div>
+        </div>
+        <div class="fav-card" onclick="openRestaurantProfile(restaurants[8])">
+          <div class="fav-card-icon">🌯</div>
+          <div class="fav-card-info">
+            <div class="fav-card-name">Roberto's Very Mexican Food</div>
+            <div class="fav-card-meta">Hillcrest · 2.5 mi</div>
+          </div>
+          <div class="fav-card-flames">🔥🔥🔥🔥🔥</div>
+        </div>
+      </div>
+      <div style="height:100px;"></div>
+    </div>
+
+    <!-- Logged-in view (shown after login) -->
+    <div id="loggedin-profile" style="display:none;">
+      <div class="user-profile-header">
+        <button class="user-profile-back" onclick="showScreen('map-screen')">←</button>
+        <div class="user-avatar-big">🌯</div>
+        <div class="user-display-name" id="profile-display-name">Maria G.</div>
+        <div class="user-handle" id="profile-handle">@burritoqueen_sd</div>
+        <div class="burrito-counter">
+          <div class="burrito-counter-emoji">🌯</div>
+          <div>
+            <div class="burrito-counter-num">127</div>
+            <div class="burrito-counter-label">Burritos Eaten</div>
+          </div>
+        </div>
+      </div>
+      <div class="user-stats-row">
+        <div class="user-stat-card">
+          <div class="user-stat-val">43</div>
+          <div class="user-stat-label">Reviews</div>
+        </div>
+        <div class="user-stat-card">
+          <div class="user-stat-val">18</div>
+          <div class="user-stat-label">Boosts</div>
+        </div>
+        <div class="user-stat-card">
+          <div class="user-stat-val">12</div>
+          <div class="user-stat-label">Favorites</div>
+        </div>
+      </div>
+      <div class="user-badge-section">
+        <span class="trust-badge"><span class="badge-dot"></span> Burrito Expert (100+)</span>
+        <span class="streak-badge">🔥 14-day streak</span>
+      </div>
+      <div class="user-section">
+        <div class="milestone-card">
+          <div class="milestone-title">Next Milestone</div>
+          <div class="milestone-msg">23 burritos until Legendary (150) 🏆</div>
+          <button class="milestone-share">Share Progress</button>
+        </div>
+      </div>
+      <div class="user-section">
+        <div class="user-section-title">Saved Favorites</div>
+        <div class="fav-card" onclick="openRestaurantProfile(restaurants[0])">
+          <div class="fav-card-icon">🌯</div>
+          <div class="fav-card-info">
+            <div class="fav-card-name">Lucha Libre Taco Shop</div>
+            <div class="fav-card-meta">Mission Hills · 0.3 mi</div>
+          </div>
+          <div class="fav-card-flames">🔥🔥🔥🔥🔥</div>
+        </div>
+        <div class="fav-card" onclick="openRestaurantProfile(restaurants[1])">
+          <div class="fav-card-icon">🌯</div>
+          <div class="fav-card-info">
+            <div class="fav-card-name">Lolita's Mexican Food</div>
+            <div class="fav-card-meta">Kearny Mesa · 2.1 mi</div>
+          </div>
+          <div class="fav-card-flames">🔥🔥🔥🔥</div>
+        </div>
+        <div class="fav-card" onclick="openRestaurantProfile(restaurants[3])">
+          <div class="fav-card-icon">🌯</div>
+          <div class="fav-card-info">
+            <div class="fav-card-name">El Zarape</div>
+            <div class="fav-card-meta">University Heights · 1.4 mi</div>
+          </div>
+          <div class="fav-card-flames">🔥🔥🔥🔥</div>
+        </div>
+      </div>
+      <div style="height:100px;"></div>
+    </div>
+  </div>
+
+  <!-- ===== AUTH MODAL ===== -->
+  <div id="auth-modal" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(123,79,46,0.4);z-index:9999;display:none;align-items:flex-end;justify-content:center;">
+    <div style="background:var(--white);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:32px 24px 40px;max-height:85vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--brown);">Welcome to Burrito 🌯</div>
+        <button onclick="document.getElementById('auth-modal').classList.remove('visible')" style="background:var(--cream);border:none;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>
+      <div id="auth-tabs" style="display:flex;gap:4px;background:var(--cream);border-radius:50px;padding:4px;margin-bottom:24px;">
+        <button class="auth-tab active" data-tab="signup" onclick="showAuthTab('signup')" style="flex:1;padding:10px;border:none;border-radius:50px;font-family:var(--font-display);font-weight:700;font-size:14px;cursor:pointer;background:var(--salsa);color:white;">Sign Up</button>
+        <button class="auth-tab" data-tab="login" onclick="showAuthTab('login')" style="flex:1;padding:10px;border:none;border-radius:50px;font-family:var(--font-display);font-weight:700;font-size:14px;cursor:pointer;background:transparent;color:var(--brown);">Log In</button>
+      </div>
+      <div id="signup-form">
+        <div class="form-group">
+          <label class="form-label">Display Name</label>
+          <input type="text" id="signup-name" placeholder="Your name" style="width:100%;padding:14px 16px;border:2px solid rgba(176,168,154,0.3);border-radius:var(--radius);font-family:var(--font-body);font-size:15px;color:var(--brown);background:var(--cream);outline:none;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" id="signup-email" placeholder="you@email.com" style="width:100%;padding:14px 16px;border:2px solid rgba(176,168,154,0.3);border-radius:var(--radius);font-family:var(--font-body);font-size:15px;color:var(--brown);background:var(--cream);outline:none;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="signup-pass" placeholder="Create a password" style="width:100%;padding:14px 16px;border:2px solid rgba(176,168,154,0.3);border-radius:var(--radius);font-family:var(--font-body);font-size:15px;color:var(--brown);background:var(--cream);outline:none;">
+        </div>
+        <button class="btn-primary" onclick="handleSignup()" style="margin-top:8px;">Create Account 🌯</button>
+      </div>
+      <div id="login-form" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" id="login-email" placeholder="you@email.com" style="width:100%;padding:14px 16px;border:2px solid rgba(176,168,154,0.3);border-radius:var(--radius);font-family:var(--font-body);font-size:15px;color:var(--brown);background:var(--cream);outline:none;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="login-pass" placeholder="Your password" style="width:100%;padding:14px 16px;border:2px solid rgba(176,168,154,0.3);border-radius:var(--radius);font-family:var(--font-body);font-size:15px;color:var(--brown);background:var(--cream);outline:none;">
+        </div>
+        <button class="btn-primary" onclick="handleLogin()" style="margin-top:8px;">Log In 🔥</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SEARCH RESULTS ===== -->
+  <div id="search-results" class="screen">
+    <div class="search-results-header">
+      <div class="search-bar">
+        <button style="background:none;border:none;font-size:18px;cursor:pointer;" onclick="showScreen('map-screen')">←</button>
+        <input type="text" placeholder="Search burritos..." value="Burritos near me">
+        <div class="search-avatar" onclick="showScreen('user-profile')">🌯</div>
+      </div>
+      <div class="sort-chips">
+        <button class="sort-chip active">🔥 Top Rated</button>
+        <button class="sort-chip">📍 Nearest</button>
+        <button class="sort-chip">💵 Price</button>
+        <button class="sort-chip">⭐ Expert</button>
+      </div>
+    </div>
+    <div class="search-results-list" id="search-results-list"></div>
+  </div>
+
+  <!-- ===== CITY SELECTOR ===== -->
+  <div id="city-selector" class="screen">
+    <div class="city-header">
+      <div class="city-header-row">
+        <button class="profile-back" style="position:static;box-shadow:none;background:var(--cream);" onclick="showScreen('map-screen')">←</button>
+        <div class="city-header-title">Choose Your City</div>
+      </div>
+    </div>
+    <div class="city-body">
+      <div class="city-section-title">Available Now</div>
+      <div class="city-card active">
+        <div class="city-card-emoji">🏖️</div>
+        <div class="city-card-info">
+          <div class="city-card-name">San Diego, CA</div>
+          <div class="city-card-count">247 burrito spots</div>
+        </div>
+        <div class="city-card-arrow">→</div>
+      </div>
+
+      <div class="city-section-title" style="margin-top:24px;">Coming Soon</div>
+      <div class="city-card coming-soon">
+        <div class="city-card-emoji">🌴</div>
+        <div class="city-card-info">
+          <div class="city-card-name">Los Angeles, CA</div>
+          <div class="city-card-count"><span class="coming-soon-badge">COMING SOON</span></div>
+        </div>
+      </div>
+      <div class="city-card coming-soon">
+        <div class="city-card-emoji">🌵</div>
+        <div class="city-card-info">
+          <div class="city-card-name">Tucson, AZ</div>
+          <div class="city-card-count"><span class="coming-soon-badge">COMING SOON</span></div>
+        </div>
+      </div>
+      <div class="city-card coming-soon">
+        <div class="city-card-emoji">🤠</div>
+        <div class="city-card-info">
+          <div class="city-card-name">Austin, TX</div>
+          <div class="city-card-count"><span class="coming-soon-badge">COMING SOON</span></div>
+        </div>
+      </div>
+      <div class="city-card coming-soon">
+        <div class="city-card-emoji">🌉</div>
+        <div class="city-card-info">
+          <div class="city-card-name">San Francisco, CA</div>
+          <div class="city-card-count"><span class="coming-soon-badge">COMING SOON</span></div>
+        </div>
+      </div>
+      <div class="city-request">
+        <p>Don't see your city? Let us know!</p>
+        <button class="btn-secondary">Request Your City</button>
+      </div>
+    </div>
+    <div style="height:60px;"></div>
+  </div>
+
+  <script>
+    // ===== RESTAURANT DATA =====
+    // User location — will be updated by geolocation
+    const userLocation = { lat: 32.7157, lng: -117.1611 };
+    let userMarker = null;
+
+    const restaurants = [
+      {
+        name: "Lucha Libre Taco Shop",
+        lat: 32.7522, lng: -117.1720,
+        rating: 4.8, flames: 5,
+        reviews: 312, boosts: 47,
+        expert: true,
+        category: "Mexican · Mission Hills",
+        distance: "0.3 mi",
+        price: "$",
+        img: "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 4.9, filling: 4.8, flavor: 4.7, value: 4.6, authenticity: 4.9 },
+        reviewList: [
+          { author: "Carlos R.", date: "2 days ago", rating: 5, text: "The California burrito here is life-changing. Crispy fries, perfectly seasoned carne asada, and that guac is fresh. Worth every penny.", boosted: true, badge: "50+ Burritos" },
+          { author: "Jenny T.", date: "1 week ago", rating: 5, text: "Best burrito in SD, no contest. The surf & turf burrito is insane. Huge portions and the salsa bar is top tier.", badge: "100+ Burritos" },
+          { author: "Mike D.", date: "2 weeks ago", rating: 4, text: "Great flavors and huge portions. Only knock is the wait time on weekends — but it's worth it.", boosted: false }
+        ]
+      },
+      {
+        name: "Lolita's Mexican Food",
+        lat: 32.7945, lng: -117.1580,
+        rating: 4.5, flames: 4,
+        reviews: 245, boosts: 31,
+        expert: true,
+        category: "Mexican · Kearny Mesa",
+        distance: "2.1 mi",
+        price: "$",
+        img: "https://images.unsplash.com/photo-1613514785940-daed07799d9b?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 4.5, filling: 4.6, flavor: 4.4, value: 4.7, authenticity: 4.3 },
+        reviewList: [
+          { author: "Ana M.", date: "3 days ago", rating: 5, text: "Carne asada fries AND their burrito? This place is a San Diego institution. The meat is always perfectly grilled.", badge: "50+ Burritos" },
+          { author: "Ryan K.", date: "1 week ago", rating: 4, text: "Solid burrito. Big portions and great carne asada. The salsa verde is a must.", boosted: true }
+        ]
+      },
+      {
+        name: "Tacos El Gordo",
+        lat: 32.7098, lng: -117.1565,
+        rating: 4.3, flames: 4,
+        reviews: 189, boosts: 22,
+        expert: false,
+        category: "Street Tacos & Burritos · Chula Vista",
+        distance: "4.2 mi",
+        price: "$",
+        img: "https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 4.2, filling: 4.4, flavor: 4.5, value: 4.3, authenticity: 4.6 },
+        reviewList: [
+          { author: "Sofia L.", date: "5 days ago", rating: 4, text: "TJ-style burritos that transport you across the border. The al pastor is incredible.", boosted: false },
+          { author: "David W.", date: "2 weeks ago", rating: 5, text: "Authentic flavors. The adobada burrito is my go-to. Cheap and delicious.", boosted: true, badge: "50+ Burritos" }
+        ]
+      },
+      {
+        name: "El Zarape",
+        lat: 32.7642, lng: -117.1290,
+        rating: 4.2, flames: 4,
+        reviews: 156, boosts: 18,
+        expert: false,
+        category: "Mexican · University Heights",
+        distance: "1.4 mi",
+        price: "$$",
+        img: "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 4.0, filling: 4.3, flavor: 4.4, value: 4.0, authenticity: 4.3 },
+        reviewList: [
+          { author: "Lisa P.", date: "1 week ago", rating: 4, text: "Creative burritos with a twist. The shrimp burrito with mango salsa is unique and delicious." },
+          { author: "Tom H.", date: "3 weeks ago", rating: 4, text: "Good variety — they have some unusual fillings that actually work. Solid spot." }
+        ]
+      },
+      {
+        name: "Nico's Mexican Food",
+        lat: 32.7356, lng: -117.1457,
+        rating: 4.0, flames: 4,
+        reviews: 134, boosts: 12,
+        expert: false,
+        category: "Mexican · Golden Hill",
+        distance: "1.8 mi",
+        price: "$",
+        img: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 4.0, filling: 4.0, flavor: 4.1, value: 4.2, authenticity: 3.8 },
+        reviewList: [
+          { author: "Ben C.", date: "4 days ago", rating: 4, text: "Reliable and consistent. The California burrito never disappoints and it's a great value." }
+        ]
+      },
+      {
+        name: "Rigoberto's Taco Shop",
+        lat: 32.7797, lng: -117.1265,
+        rating: 3.8, flames: 4,
+        reviews: 98, boosts: 8,
+        expert: false,
+        category: "Mexican · North Park",
+        distance: "1.6 mi",
+        price: "$",
+        img: "https://images.unsplash.com/photo-1624300629298-e9de39c13be5?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 3.7, filling: 3.9, flavor: 3.8, value: 4.2, authenticity: 3.5 },
+        reviewList: [
+          { author: "Chris M.", date: "1 week ago", rating: 4, text: "Open late and always hits the spot. The carne asada burrito is huge for the price." }
+        ]
+      },
+      {
+        name: "Colima's Mexican Food",
+        lat: 32.7481, lng: -117.1950,
+        rating: 3.5, flames: 3,
+        reviews: 87, boosts: 5,
+        expert: false,
+        category: "Mexican · Old Town",
+        distance: "2.8 mi",
+        price: "$",
+        img: "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 3.4, filling: 3.6, flavor: 3.5, value: 3.8, authenticity: 3.2 },
+        reviewList: [
+          { author: "Pat S.", date: "2 weeks ago", rating: 3, text: "Decent burrito for the price. Nothing fancy but it gets the job done when you're hungry." }
+        ]
+      },
+      {
+        name: "Don Carlos Taco Shop",
+        lat: 32.7615, lng: -117.2042,
+        rating: 3.2, flames: 3,
+        reviews: 64, boosts: 3,
+        expert: false,
+        category: "Mexican · Point Loma",
+        distance: "3.4 mi",
+        price: "$",
+        img: "https://images.unsplash.com/photo-1570461226513-bf84c81f1e7b?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 3.1, filling: 3.3, flavor: 3.2, value: 3.5, authenticity: 3.0 },
+        reviewList: [
+          { author: "Kim J.", date: "3 weeks ago", rating: 3, text: "Average burrito. Nothing wrong with it but nothing memorable either." }
+        ]
+      },
+      {
+        name: "Roberto's Very Mexican Food",
+        lat: 32.8156, lng: -117.1430,
+        rating: 4.6, flames: 5,
+        reviews: 278, boosts: 41,
+        expert: true,
+        category: "Mexican · Hillcrest",
+        distance: "2.5 mi",
+        price: "$",
+        img: "https://images.unsplash.com/photo-1584208632869-05fa2b2a5934?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 4.6, filling: 4.7, flavor: 4.5, value: 4.8, authenticity: 4.5 },
+        reviewList: [
+          { author: "Jesse R.", date: "1 day ago", rating: 5, text: "The OG San Diego burrito spot. Their rolled tacos and carne asada burrito combo is unbeatable.", boosted: true, badge: "100+ Burritos" },
+          { author: "Amanda L.", date: "5 days ago", rating: 5, text: "Can't believe how good this place still is after all these years. Everything is fresh.", badge: "50+ Burritos" }
+        ]
+      },
+      {
+        name: "JV's Mexican Food",
+        lat: 32.7244, lng: -117.1024,
+        rating: 4.1, flames: 4,
+        reviews: 112, boosts: 14,
+        expert: false,
+        category: "Mexican · National City",
+        distance: "5.1 mi",
+        price: "$",
+        img: "https://images.unsplash.com/photo-1629385701021-fcd568a743e8?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 4.0, filling: 4.2, flavor: 4.1, value: 4.3, authenticity: 3.9 },
+        reviewList: [
+          { author: "Rick N.", date: "6 days ago", rating: 4, text: "Hidden gem! The breakfast burrito here is massive and perfectly seasoned." }
+        ]
+      },
+      {
+        name: "Ortiz's Taco Shop",
+        lat: 32.7701, lng: -117.1701,
+        rating: 2.8, flames: 3,
+        reviews: 42, boosts: 1,
+        expert: false,
+        category: "Mexican · Hillcrest",
+        distance: "1.0 mi",
+        price: "$",
+        img: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 2.8, filling: 2.9, flavor: 2.7, value: 3.2, authenticity: 2.5 },
+        reviewList: [
+          { author: "Sam T.", date: "1 month ago", rating: 3, text: "Basic burrito. Fine when you're in a rush but there are much better options nearby." }
+        ]
+      },
+      {
+        name: "Vallarta Express",
+        lat: 32.7890, lng: -117.1090,
+        rating: 3.9, flames: 4,
+        reviews: 91, boosts: 9,
+        expert: false,
+        category: "Mexican · City Heights",
+        distance: "3.0 mi",
+        price: "$",
+        img: "https://images.unsplash.com/photo-1564767609342-620cb19b2357?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 3.8, filling: 4.0, flavor: 3.9, value: 4.1, authenticity: 3.7 },
+        reviewList: [
+          { author: "Elena V.", date: "1 week ago", rating: 4, text: "Great bang for your buck. The chicken burrito is surprisingly good and portions are generous." }
+        ]
+      },
+      {
+        name: "Los Panchos Taco Shop",
+        lat: 32.7465, lng: -117.1335,
+        rating: 4.4, flames: 4,
+        reviews: 198, boosts: 28,
+        expert: true,
+        category: "Mexican · South Park",
+        distance: "1.2 mi",
+        price: "$",
+        img: "https://images.unsplash.com/photo-1615870216519-2f9fa575fa5c?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 4.4, filling: 4.5, flavor: 4.3, value: 4.5, authenticity: 4.4 },
+        reviewList: [
+          { author: "Diego M.", date: "3 days ago", rating: 5, text: "This place is criminally underrated. The carne asada is grilled to perfection every time.", boosted: true, badge: "100+ Burritos" },
+          { author: "Sarah K.", date: "1 week ago", rating: 4, text: "Love the breakfast burrito here. Perfectly scrambled eggs with chorizo. Great salsa options." }
+        ]
+      },
+      {
+        name: "Cotija's Mexican Food",
+        lat: 32.7385, lng: -117.1780,
+        rating: 3.7, flames: 4,
+        reviews: 76, boosts: 6,
+        expert: false,
+        category: "Mexican · Midway District",
+        distance: "2.4 mi",
+        price: "$",
+        img: "https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 3.6, filling: 3.8, flavor: 3.7, value: 3.9, authenticity: 3.5 },
+        reviewList: [
+          { author: "Mark P.", date: "2 weeks ago", rating: 4, text: "Good quick stop for a burrito. The bean and cheese is simple perfection." }
+        ]
+      },
+      {
+        name: "Mike's Taco Club",
+        lat: 32.7208, lng: -117.1693,
+        rating: 4.0, flames: 4,
+        reviews: 143, boosts: 16,
+        expert: false,
+        category: "Mexican · Coronado",
+        distance: "3.8 mi",
+        price: "$$",
+        img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 3.9, filling: 4.1, flavor: 4.2, value: 3.8, authenticity: 3.7 },
+        reviewList: [
+          { author: "Amanda R.", date: "4 days ago", rating: 4, text: "Great fish burrito with ocean views. A bit pricier but the vibe makes up for it." },
+          { author: "Jake L.", date: "2 weeks ago", rating: 4, text: "Solid burritos and craft beers. The shrimp burrito is a sleeper hit." }
+        ]
+      },
+      {
+        name: "Humberto's Taco Shop",
+        lat: 32.8020, lng: -117.1260,
+        rating: 3.6, flames: 4,
+        reviews: 68, boosts: 4,
+        expert: false,
+        category: "Mexican · Normal Heights",
+        distance: "2.0 mi",
+        price: "$",
+        img: "https://images.unsplash.com/photo-1553621042-f6e147245754?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 3.5, filling: 3.7, flavor: 3.6, value: 3.8, authenticity: 3.4 },
+        reviewList: [
+          { author: "Nina G.", date: "1 week ago", rating: 4, text: "No frills, just good burritos. The rolled tacos combo is my go-to late night order." }
+        ]
+      },
+      {
+        name: "La Perla Cocina",
+        lat: 32.7580, lng: -117.1150,
+        rating: 4.7, flames: 5,
+        reviews: 267, boosts: 52,
+        expert: true,
+        category: "Mexican · North Park",
+        distance: "1.9 mi",
+        price: "$$",
+        img: "https://images.unsplash.com/photo-1625398407796-82650a8c135f?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 4.8, filling: 4.7, flavor: 4.8, value: 4.4, authenticity: 4.7 },
+        reviewList: [
+          { author: "Marcus J.", date: "1 day ago", rating: 5, text: "This place is an absolute gem. The mole burrito is unlike anything I've had. Every bite is layered with flavor.", boosted: true, badge: "100+ Burritos" },
+          { author: "Priya S.", date: "4 days ago", rating: 5, text: "Worth the wait, every single time. The handmade tortillas elevate everything.", badge: "50+ Burritos" },
+          { author: "Tony V.", date: "1 week ago", rating: 4, text: "The birria burrito here is heavenly. Just wish the portions were a touch bigger for the price." }
+        ]
+      },
+      {
+        name: "Taco Stand",
+        lat: 32.8345, lng: -117.1502,
+        rating: 4.4, flames: 4,
+        reviews: 215, boosts: 33,
+        expert: true,
+        category: "Mexican · La Jolla",
+        distance: "4.8 mi",
+        price: "$$",
+        img: "https://images.unsplash.com/photo-1618449840665-9ed506d73a34?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 4.5, filling: 4.4, flavor: 4.5, value: 4.0, authenticity: 4.3 },
+        reviewList: [
+          { author: "Rachel W.", date: "2 days ago", rating: 5, text: "The TJ-style tacos and burritos are incredible here. Fresh, flavorful, and the salsa bar is elite.", boosted: true, badge: "50+ Burritos" },
+          { author: "Kevin B.", date: "1 week ago", rating: 4, text: "Great spot in La Jolla. A bit of a wait but well worth it for the quality." }
+        ]
+      },
+      {
+        name: "Pokez Mexican Restaurant",
+        lat: 32.7185, lng: -117.1585,
+        rating: 3.9, flames: 4,
+        reviews: 105, boosts: 11,
+        expert: false,
+        category: "Mexican · East Village",
+        distance: "0.5 mi",
+        price: "$",
+        img: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=600&h=400&fit=crop",
+        breakdown: { tortilla: 3.8, filling: 4.0, flavor: 4.0, value: 4.2, authenticity: 3.6 },
+        reviewList: [
+          { author: "Leo C.", date: "5 days ago", rating: 4, text: "Best vegetarian burritos in downtown SD. The veggie supreme is packed with flavor." }
+        ]
+      }
+    ];
+
+    // ===== SCREEN MANAGEMENT =====
+    let currentScreen = 'splash';
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      const screen = document.getElementById(id);
+      screen.classList.add('active', 'screen-transition');
+      setTimeout(() => screen.classList.remove('screen-transition'), 350);
+      currentScreen = id;
+
+      if (id === 'map-screen') {
+        setTimeout(() => initMap(), 100);
+      }
+      if (id === 'search-results') {
+        renderSearchResults();
+      }
+
+      // Update tab bar
+      document.querySelectorAll('.tab-bar-item').forEach(t => t.classList.remove('active'));
+      closeBottomSheet();
+    }
+
+    // ===== ONBOARDING =====
+    let onboardingStep = 0;
+    function nextOnboardingStep() {
+      onboardingStep++;
+      if (onboardingStep >= 3) {
+        showScreen('map-screen');
+        return;
+      }
+      document.querySelectorAll('.onboarding-step').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.onboarding-dot').forEach(d => d.classList.remove('active'));
+      document.querySelector(`.onboarding-step[data-step="${onboardingStep}"]`).classList.add('active');
+      document.querySelector(`.onboarding-dot[data-dot="${onboardingStep}"]`).classList.add('active');
+      if (onboardingStep === 2) {
+        document.getElementById('onboarding-next').textContent = "Let's Go! 🌯";
+      }
+    }
+
+    // ===== MAP =====
+    window.mapInitialized = false;
+    let mapInstance = null;
+    function initMap() {
+      if (window.mapInitialized) {
+        if (mapInstance) {
+          setTimeout(() => mapInstance.invalidateSize(), 100);
+        }
+        return;
+      }
+
+      // Check if Leaflet loaded
+      if (typeof L === 'undefined') {
+        console.error('Leaflet not loaded');
+        document.getElementById('map').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-family:var(--font-display);color:var(--brown);font-size:18px;">Loading map...</div>';
+        // Retry after a moment
+        setTimeout(initMap, 1000);
+        return;
+      }
+
+      window.mapInitialized = true;
+
+      try {
+        const map = L.map('map', {
+          zoomControl: false,
+          attributionControl: false,
+        }).setView([32.7557, -117.1611], 13);
+
+        mapInstance = map;
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+      }).addTo(map);
+
+      // Force correct size after display
+      setTimeout(() => map.invalidateSize(), 200);
+
+      // Add burrito pins
+      restaurants.forEach(r => {
+        const size = mapPinSize(r.rating);
+        const icon = L.divIcon({
+          className: 'burrito-pin',
+          html: `<div style="
+            width: ${size}px;
+            height: ${size}px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: ${size * 0.55}px;
+            background: ${r.expert ? 'linear-gradient(135deg, #E85D26, #FF7A45)' : 'linear-gradient(135deg, #7B4F2E, #A06B3E)'};
+            border-radius: 50% 50% 50% 4px;
+            transform: rotate(-45deg);
+            box-shadow: 0 2px ${size/4}px rgba(123,79,46,0.35);
+            border: 2.5px solid white;
+            cursor: pointer;
+          "><span style="transform: rotate(45deg);">🌯</span></div>`,
+          iconSize: [size, size],
+          iconAnchor: [size / 2, size],
+        });
+
+        const marker = L.marker([r.lat, r.lng], { icon }).addTo(map);
+        marker.on('click', () => openBottomSheet(r));
+      });
+
+      // User location marker — hungry face
+      const userIcon = L.divIcon({
+        className: 'user-location-pin',
+        html: `<div style="
+          position: relative;
+          width: 44px;
+          height: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 28px;
+        ">
+          <div style="
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(107,143,71,0.15);
+            border: 3px solid #6B8F47;
+            animation: userPulse 2s ease-in-out infinite;
+          "></div>
+          <span style="position:relative;z-index:1;">🤤</span>
+        </div>`,
+        iconSize: [44, 44],
+        iconAnchor: [22, 22],
+      });
+      userMarker = L.marker([userLocation.lat, userLocation.lng], { icon: userIcon, zIndexOffset: 1000 }).addTo(map)
+        .bindTooltip('You are here!', { direction: 'top', offset: [0, -20] });
+
+      // Request real geolocation and follow user
+      if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(
+          (pos) => {
+            const { latitude, longitude } = pos.coords;
+            userLocation.lat = latitude;
+            userLocation.lng = longitude;
+            if (userMarker) {
+              userMarker.setLatLng([latitude, longitude]);
+            }
+            // Pan to user on first fix
+            if (!window._geoFixed) {
+              window._geoFixed = true;
+              map.setView([latitude, longitude], 14);
+            }
+          },
+          (err) => {
+            console.log('Geolocation error:', err.message, '— using default SD location');
+          },
+          { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
+        );
+      }
+
+      } catch(e) {
+        console.error('Map init error:', e);
+        document.getElementById('map').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-family:var(--font-display);color:var(--brown);font-size:18px;flex-direction:column;gap:8px;"><span style="font-size:48px;">🌯</span>Map failed to load. Check your connection.</div>';
+      }
+    }
+
+    function mapPinSize(rating) {
+      // Scale from 32px (rating 1) to 56px (rating 5)
+      return Math.round(32 + (rating / 5) * 24);
+    }
+
+    // ===== BOTTOM SHEET =====
+    function openBottomSheet(r) {
+      const flames = renderFlames(r.flames);
+      document.getElementById('bs-content').innerHTML = `
+        <div class="bs-photo">${r.img ? `<img src="${r.img}" alt="${r.name}" onerror="this.parentElement.innerHTML='<span style=font-size:48px>🌯</span>'">` : '<span style="font-size:48px;">🌯</span>'}</div>
+        <div class="bs-header">
+          <div class="bs-name">${r.name}</div>
+          ${r.expert ? '<div class="bs-expert-badge">⭐ Expert Pick</div>' : ''}
+        </div>
+        <div class="bs-flames">
+          ${flames}
+          <span class="rating-num">${r.rating}</span>
+        </div>
+        <div class="bs-stats">
+          <span>📝 ${r.reviews} reviews</span>
+          <span>🔥 ${r.boosts} boosts</span>
+          <span>💵 ${r.price || '$'}</span>
+        </div>
+        <div class="bs-actions">
+          <button class="btn-primary" onclick="openRestaurantProfile(restaurants.find(x => x.name === '${r.name.replace(/'/g, "\\'")}'))">View Full Profile</button>
+          <button class="btn-outline">Get Directions</button>
+        </div>
+      `;
+      document.getElementById('bs-overlay').classList.add('visible');
+      setTimeout(() => document.getElementById('bottom-sheet').classList.add('open'), 10);
+    }
+
+    function closeBottomSheet() {
+      document.getElementById('bottom-sheet').classList.remove('open');
+      document.getElementById('bs-overlay').classList.remove('visible');
+    }
+
+    function renderFlames(count) {
+      let html = '';
+      for (let i = 1; i <= 5; i++) {
+        html += `<span class="flame ${i <= count ? '' : 'empty'}">🔥</span>`;
+      }
+      return html;
+    }
+
+    // ===== RESTAURANT PROFILE =====
+    function openRestaurantProfile(r) {
+      const flames = renderFlames(r.flames);
+      const breakdownHTML = Object.entries(r.breakdown).map(([key, val]) => `
+        <div class="rating-bar-row">
+          <span class="rating-bar-label">${key.charAt(0).toUpperCase() + key.slice(1)}</span>
+          <div class="rating-bar"><div class="rating-bar-fill" style="width:${(val/5)*100}%"></div></div>
+          <span class="rating-bar-val">${val}</span>
+        </div>
+      `).join('');
+
+      const reviewsHTML = r.reviewList.map(rev => `
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-avatar">${rev.author.charAt(0)}</div>
+            <div class="review-meta">
+              <div class="review-author">${rev.author}</div>
+              <div class="review-date">${rev.date}</div>
+            </div>
+            ${rev.badge ? `<span class="review-badge">🌯 ${rev.badge}</span>` : ''}
+          </div>
+          <div class="review-flames">${renderFlames(rev.rating)}</div>
+          <div class="review-text">${rev.text}</div>
+          ${rev.boosted ? '<div class="review-boost">🔥 Boosted · $3</div>' : ''}
+        </div>
+      `).join('');
+
+      document.getElementById('profile-body').innerHTML = `
+        <div class="profile-name-row">
+          <div class="profile-name">${r.name}</div>
+          ${r.expert ? '<div class="bs-expert-badge">⭐ Expert Pick</div>' : ''}
+        </div>
+        <div class="profile-category">${r.category} · ${r.distance} · ${r.price || '$'}</div>
+        <div class="profile-rating-block">
+          <div class="profile-rating-title">Heat Rating</div>
+          <div class="profile-rating-big">
+            <div class="profile-rating-num">${r.rating}</div>
+            <div>
+              <div class="profile-rating-flames">${flames}</div>
+              <div style="font-size:13px;color:var(--shadow);margin-top:4px;">${r.reviews} reviews · ${r.boosts} boosts</div>
+            </div>
+          </div>
+          <div class="profile-rating-breakdown">${breakdownHTML}</div>
+        </div>
+        <div class="profile-section-title">Reviews</div>
+        ${reviewsHTML}
+        <div class="profile-cta-row">
+          <button class="btn-primary" onclick="showScreen('write-review')">Write Review</button>
+          <button class="btn-outline">Get Directions</button>
+        </div>
+      `;
+
+      // Update hero image
+      const heroEl = document.getElementById('profile-hero');
+      if (r.img) {
+        heroEl.innerHTML = `<img src="${r.img}" alt="${r.name}" onerror="this.parentElement.innerHTML='🌯'">`;
+      } else {
+        heroEl.innerHTML = '🌯';
+      }
+
+      showScreen('restaurant-profile');
+    }
+
+    // ===== SEARCH RESULTS =====
+    function renderSearchResults() {
+      const sorted = [...restaurants].sort((a, b) => b.rating - a.rating);
+      document.getElementById('search-results-list').innerHTML = sorted.map(r => `
+        <div class="result-card" onclick="openRestaurantProfile(restaurants.find(x => x.name === '${r.name.replace(/'/g, "\\'")}'))">
+          <div class="result-card-img">${r.img ? `<img src="${r.img}" alt="${r.name}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-sm);" onerror="this.parentElement.innerHTML='🌯'">` : '🌯'}</div>
+          <div class="result-card-info">
+            <div class="result-card-top">
+              <div class="result-card-name">${r.name}</div>
+              <div class="result-card-distance">${r.distance}</div>
+            </div>
+            <div class="result-card-flames">
+              ${renderFlames(r.flames)}
+              <span class="rating-text">${r.rating} · ${r.reviews} reviews</span>
+            </div>
+            <div class="result-card-tags">
+              ${r.expert ? '<span class="result-tag expert">⭐ Expert Pick</span>' : ''}
+              ${r.boosts > 20 ? '<span class="result-tag boosted">🔥 Highly Boosted</span>' : ''}
+              <span class="result-tag">${r.price || '$'} · ${r.category.split('·')[1]?.trim() || ''}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ===== FLAME SELECTOR (review form) =====
+    document.getElementById('flame-selector')?.addEventListener('click', (e) => {
+      const btn = e.target.closest('.flame-btn');
+      if (!btn) return;
+      const rating = parseInt(btn.dataset.rating);
+      document.querySelectorAll('#flame-selector .flame-btn').forEach((b, i) => {
+        b.classList.toggle('active', i < rating);
+      });
+    });
+
+    // ===== BOOST AMOUNT SELECTOR =====
+    document.querySelectorAll('.boost-amt').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.boost-amt').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    // ===== FILTER CHIP TOGGLE =====
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+      chip.addEventListener('click', function() {
+        if (this.textContent.includes('San Diego')) return;
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // ===== SORT CHIP TOGGLE =====
+    document.querySelectorAll('.sort-chip').forEach(chip => {
+      chip.addEventListener('click', function() {
+        document.querySelectorAll('.sort-chip').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // ===== AUTH =====
+    function showAuthTab(tab) {
+      document.getElementById('signup-form').style.display = tab === 'signup' ? 'block' : 'none';
+      document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+      document.querySelectorAll('.auth-tab').forEach(t => {
+        const isActive = t.dataset.tab === tab;
+        t.style.background = isActive ? 'var(--salsa)' : 'transparent';
+        t.style.color = isActive ? 'white' : 'var(--brown)';
+        t.classList.toggle('active', isActive);
+      });
+    }
+
+    function handleSignup() {
+      const name = document.getElementById('signup-name').value || 'Burrito Fan';
+      document.getElementById('profile-display-name').textContent = name;
+      document.getElementById('profile-handle').textContent = '@' + name.toLowerCase().replace(/\s+/g, '') + '_sd';
+      completeAuth();
+    }
+
+    function handleLogin() {
+      completeAuth();
+    }
+
+    function completeAuth() {
+      document.getElementById('auth-modal').classList.remove('visible');
+      document.getElementById('guest-profile').style.display = 'none';
+      document.getElementById('loggedin-profile').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
