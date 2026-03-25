@@ -1082,76 +1082,49 @@
       align-items: flex-end;
       gap: 14px;
     }
-    .size-emoji-wrap {
-      width: 44px;
-      flex-shrink: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
-      align-self: flex-end;
-      padding-bottom: 4px;
+    /* ===== SIZE SELECTOR — grid layout matching sketch ===== */
+    .size-selector {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      grid-template-rows: auto auto;
+      column-gap: 14px;
     }
+    /* Row 1 col 1: burrito emoji */
     .size-emoji {
+      grid-column: 1; grid-row: 1;
+      font-size: 54px;
       display: inline-block;
-      transform: rotate(-90deg);
+      /* Rotate ~-45deg so the wrapped end faces left, filling faces right */
+      transform: rotate(-45deg);
+      transform-origin: center center;
+      align-self: center;
       line-height: 1;
       transition: font-size 0.25s ease;
     }
-    .size-right {
-      flex: 1;
-      position: relative;
-      padding-top: 58px; /* space for bubble */
-    }
-    /* Callout bubble */
-    .size-bubble {
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--brown);
-      color: white;
-      border-radius: 10px;
-      padding: 7px 13px;
-      text-align: center;
-      pointer-events: none;
-      white-space: nowrap;
-      box-shadow: 0 3px 14px rgba(123,79,46,0.22);
-      transition: left 0.2s ease;
-    }
-    .size-bubble-name {
-      font-family: var(--font-display);
-      font-size: 13px;
-      font-weight: 800;
-    }
-    .size-bubble-desc {
-      font-size: 11px;
-      opacity: 0.8;
-      margin-top: 1px;
-    }
-    .size-bubble-tip {
-      position: absolute;
-      bottom: -7px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0; height: 0;
-      border-left: 7px solid transparent;
-      border-right: 7px solid transparent;
-      border-top: 8px solid var(--brown);
-    }
-    /* Track area */
+    /* Row 1 col 2: slider track */
     .size-track-area {
+      grid-column: 2; grid-row: 1;
       position: relative;
-      height: 32px;
+      height: 28px;
       display: flex;
       align-items: center;
     }
+    /* Row 2 col 1: empty spacer so callout aligns to col 2 */
+    .size-spacer { grid-column: 1; grid-row: 2; }
+    /* Row 2 col 2: callout lives here, bubble is absolutely positioned inside */
+    .size-callout-row {
+      grid-column: 2; grid-row: 2;
+      position: relative;
+      height: 62px;
+      margin-top: 4px;
+    }
+    /* Gray track line */
     .size-visual-track {
       position: absolute;
       left: 11px; right: 11px;
-      top: 50%;
-      transform: translateY(-50%);
-      height: 4px;
-      background: rgba(176,168,154,0.3);
+      top: 50%; transform: translateY(-50%);
+      height: 3px;
+      background: rgba(176,168,154,0.35);
       border-radius: 2px;
       pointer-events: none;
     }
@@ -1163,25 +1136,20 @@
       border-radius: 2px;
       transition: width 0.2s;
     }
-    .size-dots {
-      position: absolute;
-      left: 0; right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      display: flex;
-      justify-content: space-between;
-      pointer-events: none;
-    }
+    /* Gray dots — absolutely positioned via JS so they align with thumb exactly */
     .size-dot {
+      position: absolute;
       width: 10px; height: 10px;
       border-radius: 50%;
       background: rgba(176,168,154,0.55);
       border: 2px solid white;
-      flex-shrink: 0;
-      transition: background 0.2s, transform 0.2s;
+      top: 50%; transform: translateY(-50%);
+      pointer-events: none;
+      transition: background 0.2s;
+      z-index: 1;
     }
     .size-dot.active { background: var(--salsa); }
-    /* Native range — invisible track, visible thumb */
+    /* Native range input — transparent track, orange thumb on top */
     .size-range {
       position: absolute;
       left: 0; right: 0;
@@ -1194,7 +1162,7 @@
       z-index: 2;
       outline: none;
     }
-    .size-range::-webkit-slider-runnable-track { background: transparent; height: 4px; }
+    .size-range::-webkit-slider-runnable-track { background: transparent; height: 3px; }
     .size-range::-webkit-slider-thumb {
       -webkit-appearance: none;
       width: 22px; height: 22px;
@@ -1206,7 +1174,7 @@
       transition: transform 0.1s;
     }
     .size-range::-webkit-slider-thumb:hover { transform: scale(1.12); }
-    .size-range::-moz-range-track { background: transparent; height: 4px; border: none; }
+    .size-range::-moz-range-track { background: transparent; height: 3px; border: none; }
     .size-range::-moz-range-thumb {
       width: 22px; height: 22px;
       border-radius: 50%;
@@ -1215,6 +1183,39 @@
       box-shadow: 0 2px 8px rgba(232,93,38,0.45);
       cursor: pointer;
     }
+    /* Callout bubble — below the track, arrow points UP to the dot */
+    .size-bubble {
+      position: absolute;
+      top: 10px;
+      left: 50%; /* repositioned by JS */
+      transform: translateX(-50%);
+      background: var(--brown);
+      color: white;
+      border-radius: 10px;
+      padding: 8px 14px;
+      text-align: center;
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: 0 3px 14px rgba(123,79,46,0.22);
+      transition: left 0.2s ease;
+    }
+    /* Arrow tip pointing UP (border-bottom trick) */
+    .size-bubble-tip {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom: 9px solid var(--brown);
+    }
+    .size-bubble-name {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .size-bubble-desc { font-size: 11px; opacity: 0.8; margin-top: 1px; }
     .sort-chips {
       display: flex;
       gap: 8px;
@@ -1590,32 +1591,30 @@
       <div class="form-group">
         <label class="form-label">Size</label>
         <div class="size-selector">
-          <!-- Sideways burrito anchored at bottom-left, grows with value -->
-          <div class="size-emoji-wrap">
-            <span id="size-emoji" class="size-emoji">🌯</span>
+          <!-- Col 1 Row 1: burrito emoji, rotated to lie horizontal -->
+          <span id="size-emoji" class="size-emoji">🌯</span>
+          <!-- Col 2 Row 1: slider track with dots and thumb -->
+          <div class="size-track-area" id="size-track-area">
+            <div class="size-visual-track">
+              <div class="size-fill" id="size-fill"></div>
+            </div>
+            <!-- Dots positioned by JS to align exactly with thumb steps -->
+            <div class="size-dot" data-v="0"></div>
+            <div class="size-dot" data-v="1"></div>
+            <div class="size-dot" data-v="2"></div>
+            <div class="size-dot" data-v="3"></div>
+            <div class="size-dot" data-v="4"></div>
+            <input type="range" id="size-slider" class="size-range" min="0" max="4" step="1" value="2"
+              oninput="updateSizeSlider(this.value)">
           </div>
-          <!-- Slider with callout bubble -->
-          <div class="size-right">
-            <!-- Speech bubble callout, repositioned by JS -->
+          <!-- Col 1 Row 2: empty spacer keeps callout in col 2 -->
+          <div class="size-spacer"></div>
+          <!-- Col 2 Row 2: callout bubble below track, arrow points up -->
+          <div class="size-callout-row">
             <div class="size-bubble" id="size-bubble">
+              <div class="size-bubble-tip"></div>
               <div class="size-bubble-name" id="size-callout-name">The Commitment</div>
               <div class="size-bubble-desc" id="size-callout-desc">"I skipped the gym for this"</div>
-              <div class="size-bubble-tip"></div>
-            </div>
-            <!-- Track with dots and range input overlay -->
-            <div class="size-track-area" id="size-track-area">
-              <div class="size-visual-track">
-                <div class="size-fill" id="size-fill"></div>
-                <div class="size-dots">
-                  <div class="size-dot" data-v="0"></div>
-                  <div class="size-dot" data-v="1"></div>
-                  <div class="size-dot" data-v="2"></div>
-                  <div class="size-dot" data-v="3"></div>
-                  <div class="size-dot" data-v="4"></div>
-                </div>
-              </div>
-              <input type="range" id="size-slider" class="size-range" min="0" max="4" step="1" value="2"
-                oninput="updateSizeSlider(this.value)">
             </div>
           </div>
         </div>
@@ -2223,8 +2222,7 @@
       setTimeout(fixViewportHeight, 300);
     });
 
-    // Init size slider on load (after DOM is painted)
-    setTimeout(() => { if (document.getElementById('size-slider')) updateSizeSlider(2); }, 100);
+    // Size slider init fires when Log Burrito screen opens (populateRestaurantSelector)
 
     let currentScreen = 'splash';
 
@@ -2776,45 +2774,53 @@
 
     // ===== LOG BURRITO =====
     const sizeData = [
-      { name: 'The Baby Wrap', desc: '"Just a snack, I said"', emoji: 26 },
-      { name: 'The Regular', desc: '"Classic. No shame."', emoji: 34 },
-      { name: 'The Commitment', desc: '"I skipped the gym for this"', emoji: 44 },
-      { name: 'The XL Decision', desc: '"Tomorrow is a new day"', emoji: 56 },
-      { name: 'Send Help', desc: '"This burrito has a burrito inside"', emoji: 70 },
+      { name: 'The Baby Wrap', desc: '"Just a snack, I said"', emoji: 34 },
+      { name: 'The Regular', desc: '"Classic. No shame."', emoji: 44 },
+      { name: 'The Commitment', desc: '"I skipped the gym for this"', emoji: 56 },
+      { name: 'The XL Decision', desc: '"Tomorrow is a new day"', emoji: 70 },
+      { name: 'Send Help', desc: '"This burrito has a burrito inside"', emoji: 86 },
     ];
 
     function updateSizeSlider(val) {
       const v = parseInt(val);
       const data = sizeData[v];
+      const THUMB = 22; // thumb diameter in px
+      const tHalf = THUMB / 2; // 11
 
-      // Emoji size (sideways burrito grows)
+      // Emoji size grows with value
       const emoji = document.getElementById('size-emoji');
       if (emoji) emoji.style.fontSize = data.emoji + 'px';
 
       // Callout text
-      const nameEl = document.getElementById('size-callout-name');
-      const descEl = document.getElementById('size-callout-desc');
-      if (nameEl) nameEl.textContent = data.name;
-      if (descEl) descEl.textContent = data.desc;
+      document.getElementById('size-callout-name').textContent = data.name;
+      document.getElementById('size-callout-desc').textContent = data.desc;
 
-      // Fill width
+      const area = document.getElementById('size-track-area');
+      if (!area || !area.offsetWidth) return;
+      const W = area.offsetWidth;
+
+      // Thumb center x for value v:
+      // Native range maps [0,4] to [tHalf, W-tHalf]
+      const thumbCx = (v / 4) * (W - THUMB) + tHalf;
+
+      // Fill: from left edge of visual track (at x=tHalf) to thumbCx
+      // Visual track is left:tHalf, right:tHalf, width = W-THUMB
+      // Fill width as % of (W-THUMB):
       const fill = document.getElementById('size-fill');
       if (fill) fill.style.width = (v / 4 * 100) + '%';
 
-      // Active dots (fill left-to-current)
+      // Dots: position each dot so its center = thumbCx for value i
       document.querySelectorAll('.size-dot').forEach((dot, i) => {
         dot.classList.toggle('active', i <= v);
+        const cx = (i / 4) * (W - THUMB) + tHalf;
+        dot.style.left = (cx - 5) + 'px'; // 5 = dotRadius
       });
 
-      // Position callout bubble above the thumb
-      const area = document.getElementById('size-track-area');
+      // Callout bubble: positioned in .size-callout-row which has same width as .size-track-area
       const bubble = document.getElementById('size-bubble');
-      if (area && bubble) {
-        const w = area.offsetWidth;
-        const thumbHalf = 11;
-        const leftPx = thumbHalf + (v / 4) * (w - thumbHalf * 2);
+      if (bubble) {
         const halfBubble = bubble.offsetWidth / 2;
-        const clamped = Math.min(Math.max(leftPx, halfBubble + 2), w - halfBubble - 2);
+        const clamped = Math.min(Math.max(thumbCx, halfBubble + 2), W - halfBubble - 2);
         bubble.style.left = clamped + 'px';
       }
     }
@@ -2829,9 +2835,9 @@
       if (clearBtn) clearBtn.style.display = 'none';
       hideRestaurantAC();
       document.getElementById('log-nearby-hint').style.display = 'none';
-      // Reset size slider
+      // Reset size slider — wait one frame so the screen is visible and offsetWidth is correct
       const slider = document.getElementById('size-slider');
-      if (slider) { slider.value = 2; updateSizeSlider(2); }
+      if (slider) { slider.value = 2; requestAnimationFrame(() => updateSizeSlider(2)); }
     }
 
     function filterRestaurantAC(query) {
