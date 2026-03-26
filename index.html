@@ -2677,7 +2677,8 @@
     const userLocation = { lat: 32.7157, lng: -117.1611 };
     let userMarker = null;
 
-    const restaurants = [
+    // restaurants array loaded from restaurants.js (see <script src="restaurants.js">)
+    const _restaurants_placeholder = [
       {
         name: "Lucha Libre Taco Shop",
         lat: 32.7522, lng: -117.1720,
@@ -2974,7 +2975,7 @@
           { author: "Leo C.", date: "5 days ago", rating: 4, text: "Best vegetarian burritos in downtown SD. The veggie supreme is packed with flavor." }
         ]
       }
-    ];
+    ]; // end placeholder — overridden by restaurants.js below
 
     // ===== SCREEN MANAGEMENT =====
     // ===== VIEWPORT HEIGHT FIX (mobile Safari) =====
@@ -4598,5 +4599,7 @@
       }
     });
   </script>
+  <!-- Full SD County restaurant dataset (110+ entries) -->
+  <script src="restaurants.js"></script>
 </body>
 </html>
